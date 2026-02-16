@@ -1,0 +1,15 @@
+{
+  "short_name": "RichHealth.ai",
+  "name": "RichHealth.ai — AI-Powered Family Health Intelligence",
+  "icons": [
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#0A0A0F",
+  "background_color": "#0A0A0F"
+}
