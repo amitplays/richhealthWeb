@@ -1,23 +1,24 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
-import { DIALOG_CONTENT, RICHIE_PROMPTS } from './content';
+import { DIALOG_CONTENT, RICHIE_PROMPTS, JOBS, LEGAL } from './content';
 
 /* Asset imports */
 import logoIcon from './assets/ic_launcher.png';
-import measurementsImg from './assets/Measurements.png';
 import icMentalHealth from './assets/ic_mental_health_chat.png';
 import icFamily from './assets/ic_family_relationships.png';
 import icSymptoms from './assets/ic_symptoms_measurements.png';
 import icReports from './assets/ic_medical_reports.png';
 import icMedications from './assets/ic_medications.png';
 import icStethoscope from './assets/ic_stethoscope.png';
-/* Phone slideshow images */
-import splashScreen from './assets/SplashScreenwithlogo.png';
-import medicalReportsImg from './assets/Medical Reports.png';
-import medicationsScreenImg from './assets/Medications.png';
-import vitalsScreenImg from './assets/appScreenVitals.png';
-import addSymptomImg from './assets/Add Symptom.png';
-import addMeasurementImg from './assets/Add Measurement.png';
+
+/* Real device screenshots */
+import scrServicesLong from './assets/screens/services_hub_long.jpg';
+import scrRichieDependent from './assets/screens/richie_dependent_picker.jpg';
+import scrBiometric from './assets/screens/biometric_lock.jpg';
+import scrHealthHubPeriod from './assets/screens/health_hub_period.jpg';
+import scrCheckin from './assets/screens/checkin_history.jpg';
+import scrNutriResult from './assets/screens/nutricheck_result.jpg';
+import scrHealthAnalysisLong from './assets/screens/health_analysis_long.jpg';
 
 /* =============================================================
    SVG LINE ICONS
@@ -64,10 +65,81 @@ const I = {
   appStore: (<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>),
 };
 
+/* =============================================================
+   ANDROID-APP DRAWABLE ICONS (inlined as SVG)
+   These are the same vector paths the Android app uses, so the
+   website's icon language matches the product 1:1.
+   ============================================================= */
+const AppIcon = {
+  // Translated from app/src/main/res/drawable/ic_menstrual_health.xml
+  menstrual: (
+    <svg viewBox="0 0 960 960" width="20" height="20" fill="currentColor" aria-hidden="true">
+      <g transform="translate(0,960) scale(1,-1)">
+        <path d="M119 178v302q0 127 74 225.5T382 845q-65-38-104.5-102.5T238 600q0-48 25-114.5T335 340L119 178Zm361 0q-97 117-155.5 232T266 600q0 89 62.5 151.5T480 814q89 0 151.5-62.5T694 600q0-75-58.5-190.5T480 178Zm361 0L625 341q46 77 71.5 144T722 600q0 78-39.5 142.5T578 845q115-41 189-139.5T841 480V178Z"/>
+      </g>
+    </svg>
+  ),
+  water: (
+    <svg viewBox="0 0 960 960" width="20" height="20" fill="currentColor" aria-hidden="true">
+      <g transform="translate(0,960) scale(1,-1)">
+        <path d="M478 496Zm222 317q68-64 97.5-109t29.5-84q0-56-37-95.5T700 507q-53 0-90 39.63-37 39.62-37 94.89 0 37.85 30.94 84.84Q634.87 773.35 700 781Zm0-73q-37-42-55-71.39t-18-49.01q0-32 20.81-56.3 20.82-24.3 52-24.3Q731 507 752 531.3q21 24.3 21 56.3 0 19.62-18 49.01Q737 666 700 708ZM479.71 864Q352 864 267 776.4q-85-87.6-85-220.57Q182 463 257 351q75-112 223-241 50.88-45.09 92.44-86.29Q614 23.49 647 64q-3 6-16.17 21.95Q617.66 101.9 614 107q-27 33-60.5 68t-73.75 71Q360 309 298 404t-62 169.82q0 109.67 69.5 181.92Q375 810 479.85 810q52.43 0 96.79-19.5Q621 771 653.96 737.21q32.96-33.78 51.5-80.36Q724 610.26 724 556q0-17.62-3.5-37.31T709 479q5.96-3.55 23.5-13.5T756 452q12 28 17 54.07t5 49.93q0 132.8-85.29 220.4-85.3 87.6-213 87.6Z"/>
+      </g>
+    </svg>
+  ),
+  biotech: (
+    <svg viewBox="0 0 960 960" width="20" height="20" fill="currentColor" aria-hidden="true">
+      <g transform="translate(0,960) scale(1,-1)">
+        <path d="M218 832v-54h204v110h-26q-76 0-127 56.5T218 478q0-55 29-101t79-68q-4-14-.5-27t12.5-24q-32-17-49-49t-17-69q0-57 40.5-96.5T410 614h312v-54H496V450h246v-54H218Zm358 364l-12 38-40-14-22 58q16 13 24 31.5t8 39.5q0 39-28 67.5T439 1708l-19 56 38 14-14 38 58 22 12-40 38 14 104-286-36-14 14-40-58-20Z"/>
+      </g>
+    </svg>
+  ),
+  family: (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="9" cy="7" r="2.5"/><circle cx="17" cy="9" r="2"/><path d="M3 21v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1"/><path d="M14 21v-1a3 3 0 0 1 3-3h1a3 3 0 0 1 3 3v1"/>
+    </svg>
+  ),
+  pill: (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M10.5 1.5l-8 8a5 5 0 0 0 7.07 7.07l8-8a5 5 0 0 0-7.07-7.07z"/><path d="M7 11l4-4"/>
+    </svg>
+  ),
+  heart: (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M19.5 12.572l-7.5 7.428l-7.5-7.428A5 5 0 1 1 12 6.006a5 5 0 1 1 7.5 6.572"/>
+    </svg>
+  ),
+  air: (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9.59 4.59A2 2 0 1 1 11 8H2"/><path d="M12.59 19.41A2 2 0 1 0 14 16H2"/><path d="M17.73 7.73A2.5 2.5 0 1 1 19.5 12H2"/>
+    </svg>
+  ),
+  food: (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 11h18l-1.5 9a2 2 0 0 1-2 1.6h-11a2 2 0 0 1-2-1.6L3 11z"/><path d="M7 11V8a5 5 0 0 1 10 0v3"/>
+    </svg>
+  ),
+  fingerprint: (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 11v2a5 5 0 0 1-5 5"/><path d="M9 7a6 6 0 0 1 9 5"/><path d="M5 12a7 7 0 0 1 14 0v3"/><path d="M3 12a9 9 0 0 1 18 0"/>
+    </svg>
+  ),
+  brain: (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9 4a3 3 0 0 0-3 3v1a3 3 0 0 0-3 3 3 3 0 0 0 1.5 2.6A3 3 0 0 0 6 18a3 3 0 0 0 3 3"/><path d="M15 4a3 3 0 0 1 3 3v1a3 3 0 0 1 3 3 3 3 0 0 1-1.5 2.6A3 3 0 0 1 18 18a3 3 0 0 1-3 3"/><path d="M12 4v17"/>
+    </svg>
+  ),
+  doc: (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/>
+    </svg>
+  ),
+};
+
 /* Feature icon image map */
 const FEATURE_ICON_MAP = {
   'ai-chat': icMentalHealth,
   'family-network': icFamily,
+  dependents: icFamily,
   symptoms: icSymptoms,
   reports: icReports,
   medications: icMedications,
@@ -117,32 +189,38 @@ function CountUp({ value, suffix = '', prefix = '', decimals = 0 }) {
    DATA
    ============================================================= */
 const PROBLEMS = [
-  { title: 'Fragmented Health Data', body: 'Your health data lives across 10+ apps, paper prescriptions, and scattered doctor visits. No single system sees the full picture. In India, where most health records are still on paper, this fragmentation isn\u2019t just inconvenient. It\u2019s dangerous. When something goes wrong, critical context is lost.', stat: '73% of medical errors stem from incomplete patient information' },
-  { title: 'No AI Built for Indian Health', body: 'Existing health AIs are built for Western markets. They don\u2019t understand Indian dietary patterns: dal, ghee, regional cuisines. They don\u2019t recognize Indian medication brands like Crocin or Dolo-650. They can\u2019t reason about dengue, TB, or monsoon-related health risks. They give generic advice to a population that needs deeply contextual intelligence.', stat: 'Zero health AIs are purpose-built for India\u2019s 1.4 billion people' },
-  { title: 'Family Health is Invisible', body: 'Your mother\u2019s diabetes, your father\u2019s heart condition, your child\u2019s allergies. These are YOUR risk factors. In Indian families, where generations live together and health decisions are deeply interconnected, no app connects these critical hereditary dots. Until now.', stat: 'Indian families lose \u20B968,000/year to preventable health crises' },
+  { title: 'Health data lives in 10 places. Your body is one.', body: 'Reports in WhatsApp. Prescriptions in a drawer. Vitals in a wearable. Symptoms in your head. Period logs in a separate app. Your child\'s reports on your spouse\'s phone. Nothing reconciles. Doctors get a 10-minute slice of a 30-year story \u2014 and they make decisions on it. RichHealth.ai is the first platform that pulls reports, vitals, symptoms, periods, medications, dependents and family history into one encrypted graph.', stat: '~73% of preventable medical errors trace back to incomplete patient information' },
+  { title: 'No health AI was built for the way Indians actually live.', body: 'Western health AIs reason about Tylenol and a 2,000-calorie diet of grilled chicken. Richie reads "Tab Crocin 650 TDS" and understands the clinical intent. It knows dal-chawal, ghee, dengue spikes in Mumbai, thyroid patterns in coastal Kerala, and PCOS prevalence among South Asian women. We built the AI from this context outward \u2014 and only then engineered it to scale globally.', stat: 'Zero global health AIs are purpose-built for India\'s 1.4 billion people' },
+  { title: 'Period and family health are still treated as side features.', body: 'Half the planet menstruates. Indian families live multi-generationally and make health decisions for parents, children and dependents \u2014 yet most health apps either ignore this entirely or split it into separate, disconnected products. RichHealth.ai puts period tracking, dependents and hereditary risk on the same level as your blood work. Because they are.', stat: '1 in 5 Indian women have PCOS. Most learn about it years too late.' },
 ];
 
 const FEATURES = [
-  { id: 'ai-chat', title: 'Meet Richie: AI That Actually Knows You', body: 'Not a generic chatbot. Richie reads your complete health profile (medications, symptoms, measurements, medical reports, family history, and even your local air quality) before responding. Built to understand Indian health context: from regional diseases like dengue and TB, to local medications, dietary patterns, and Ayurvedic concepts alongside modern medicine. Multi-model cascade with 15+ AI models ensures 99.9% uptime.', badges: ['India-First Health AI', 'Multi-Model Cascade', 'Auto-Fallback', 'Conversation Memory'] },
-  { id: 'family-network', title: 'The World\u2019s First Family-Connected Health AI', highlight: 'PATENT-WORTHY INNOVATION. NO COMPETITOR HAS THIS.', body: 'Connect your family members. Each member\u2019s relevant health data flows securely to Richie, giving it hereditary context no other platform can match. When you ask \u201CAm I at risk for diabetes?\u201D, Richie already knows your mother has Type 2 and your BMI has been trending upward.', list: ['Relationship requests & approvals', 'Selective data sharing (AI-only)', 'Hereditary risk detection', 'Family health timeline'] },
-  { id: 'symptoms', title: 'Your Body\u2019s Black Box Recorder', body: 'Log symptoms with severity, duration, and descriptions. Track measurements (blood pressure, blood sugar, weight, heart rate) over time. Richie cross-references every entry against your medications, AQI exposure, and family history to find patterns invisible to the human eye.', insight: 'A user who logs daily for 90 days gives Richie more personal health context than exists in their entire medical record history.' },
-  { id: 'reports', title: 'Upload a Report. Get a Second Opinion in Seconds.', body: 'Upload any medical report (blood work, imaging, lab results) and Richie extracts key findings, flags abnormal values, and cross-references everything against your health profile and family genetics.', badges: ['Pro: Doctor Review Layer', 'Telehealth + AI Hybrid'] },
-  { id: 'aqi', title: 'The Air You Breathe Is Part of Your Health Record', body: 'RichHealth.ai passively tracks your location\u2019s Air Quality Index, building a complete environmental exposure profile. Richie correlates your headaches with pollution spikes and generates long-term exposure risk assessments.', badges: ['30-Day Analytics', 'Trend Detection', 'Health Impact Categorization'], list: ['AQI (US & China standards)', 'PM2.5, PM10, O3', 'Temperature & Humidity'] },
-  { id: 'health-news', title: 'Health News That Matters to Where You Live', body: 'Richie curates health news based on your location, health profile, and family conditions. When dengue outbreaks hit your city, you\u2019re the first to know. When new research emerges about a condition in your family, Richie brings it to you. No noise, no clickbait. Just health intelligence that\u2019s relevant to YOUR life, YOUR city, YOUR conditions.', badges: ['Location-Aware', 'Condition-Matched', 'Outbreak Alerts', 'Daily Digest'] },
-  { id: 'nutricheck', title: 'Should I Eat This? Ask Richie.', body: 'Type any food item and get an instant, personalized recommendation. NutriCheck analyzes food against YOUR health profile: conditions, medications, allergies, blood work, and goals, with deep understanding of Indian cuisine and dietary patterns.', badges: ['Foods to Eat', 'Foods to Avoid', 'Meal Plan Ideas'] },
-  { id: 'medications', title: 'Never Miss a Dose. Never Miss an Interaction.', body: 'Track every medication with full details, including Indian brands and generics. Richie uses your complete medication list when analyzing symptoms, evaluating food interactions, and providing health recommendations.' },
-  { id: 'doctor', title: 'A Bridge Between You and Your Doctor', body: 'The Doctor Portal gives physicians a comprehensive view: medical history, medications, symptoms, Richie\u2019s report analyses, AQI exposure, and health alerts, all in one place. Data-rich, continuous care.', badges: ['Patient health status', 'Comprehensive profiles', 'Report verification', 'Risk scoring'] },
-  { id: 'podcasts', title: 'Health Knowledge, Curated & Delivered', body: 'Access a curated library of health podcasts with full playback controls, bookmarking, and progress persistence. Building health literacy that compounds over time.' },
-  { id: 'workout', title: 'Complete Fitness Tracking', body: 'Browse exercises, build custom workouts, and log history. Richie factors exercise data into health recommendations, suggesting rest, adjusting calories, correlating patterns with symptoms.' },
+  { id: 'ai-chat', title: 'Meet Richie: AI That Actually Knows You', body: 'Not a generic chatbot. Richie reads your complete health profile \u2014 medications, symptoms, measurements, medical reports, family history, period logs, daily check-ins and your local air quality \u2014 before saying a word. Built to understand Indian health context: regional diseases like dengue and TB, local medications, dietary patterns, and Ayurvedic concepts alongside modern medicine. A multi-model cascade with 15+ AI models ensures 99.9% uptime.', badges: ['India-First Health AI', 'Multi-Model Cascade', 'Auto-Fallback', 'Conversation Memory'] },
+  { id: 'family-network', title: 'The World\u2019s First Family-Connected Health AI', highlight: 'PATENT-WORTHY INNOVATION. NO COMPETITOR HAS THIS.', body: 'Connect your living family members. Each member\u2019s relevant health data flows securely to Richie, giving it hereditary context no other platform can match. When you ask \u201CAm I at risk for diabetes?\u201D, Richie already knows your mother has Type 2 and your BMI has been trending upward.', list: ['Relationship requests & approvals', 'Selective data sharing (AI-only)', 'Hereditary risk detection', 'Shared family health timeline'] },
+  { id: 'dependents', title: 'Dependents \u2014 One Account, Whole Family', highlight: 'CHILDREN \u00B7 AGEING PARENTS \u00B7 DECEASED RELATIVES', body: 'In Indian households, one person manages health for everyone. RichHealth.ai is built for that reality. Add a child, an ageing parent, or a deceased relative whose hereditary data still matters, and Richie maintains a fully separate health graph for each \u2014 with caregiver-aware AI that always knows whose body it\u2019s reasoning about.', list: ['Paediatric reference ranges for children', 'Polypharmacy & fall-risk checks for elders', 'Hereditary conditions preserved from deceased relatives', '"Graduate" a child profile to their own account'] },
+  { id: 'genetics', title: 'Hereditary Risk Engine', body: 'You enter what you know \u2014 parents\u2019 conditions, grandparents\u2019 diagnoses, siblings\u2019 history, hereditary patterns from deceased relatives. Richie cross-references that genetic context against your own labs, vitals, symptoms and lifestyle to produce a real, grounded hereditary risk profile. Not horoscopes. A risk map specific to your bloodline.', insight: 'South Asian populations carry distinct genetic predispositions for diabetes, cardiac disease, PCOS and thyroid disorders. Richie weights for them. Western health AIs do not.', badges: ['Family History Graph', 'South Asian Risk Weighting', 'Reproductive Hereditary Signals'] },
+  { id: 'period', title: 'Period & Cycle Intelligence', highlight: 'INTEGRATED, PRIVATE, INDIA-AWARE', body: 'Most period apps live in a silo \u2014 they predict the next cycle and stop there. Richie cross-references every period log with your thyroid panel, your iron levels, your stress, your medications, and your family\u2019s hereditary patterns. PCOS, endometriosis, early menopause \u2014 flagged when the data actually supports it.', list: ['Flow intensity, pain level, duration logging', 'Cycle prediction grounded in your real logs', 'PCOS / endometriosis pattern detection', 'Available for you and any female dependent'] },
+  { id: 'council', title: 'AI Council \u2014 Three Frontier Models. One Consensus.', highlight: 'PRO & ULTRA EXCLUSIVE', body: 'On Pro and Ultra, Richie shifts from a single model to a council of frontier AIs \u2014 Gemini, GPT-5.3 and Claude 4.5 \u2014 each analysing your data independently, then reconciling findings into one synthesised response. The equivalent of a second, third and fourth opinion, automatically, on every important question.', badges: ['Gemini', 'GPT-5.3', 'Claude 4.5', 'Consensus Synthesis'] },
+  { id: 'symptoms', title: 'Your Body\u2019s Black Box Recorder', body: 'Log symptoms with severity, duration, and notes. Track vitals \u2014 blood pressure, blood sugar, weight, heart rate, SpO\u2082, temperature \u2014 over time. Richie cross-references every entry against your medications, AQI exposure, cycle and family history to find patterns invisible to the human eye.', insight: 'A user who logs daily for 90 days gives Richie more personal health context than exists in their entire medical record history.' },
+  { id: 'checkin', title: 'Daily & Weekly Health Check-Ins', body: 'A guided two-minute flow asks the questions a thoughtful doctor would \u2014 energy, sleep, mood, pain, hydration, exercise, bowel health, stress. Optional fingerprint or face unlock keeps the data private on shared devices. The result is a longitudinal record Richie correlates against everything else.', badges: ['Adaptive Questions', 'Weekly on Pro', 'Every 3 Days on Ultra', 'Biometric Lock'] },
+  { id: 'reports', title: 'Upload a Report. Get a Second Opinion in Seconds.', body: 'Upload any medical report \u2014 blood work, imaging, lab results, discharge summaries \u2014 and Richie extracts key findings, flags abnormal values, and cross-references everything against your health profile, your medications and your family\u2019s hereditary conditions.', badges: ['AI Analysis', 'Ultra: Doctor Review', 'Telehealth + AI Hybrid'] },
+  { id: 'health-hub', title: 'Health Hub \u2014 Your Mission Control', body: 'The second tab of the app \u2014 the single screen where every vital, every report, every medication, every symptom, every cycle log and every dependent\u2019s data converges. Designed to feel less like a health app and more like the dashboard of a high-end car: dense, calm, in control.', list: ['Unified vitals at a glance', 'One-tap entry to every tool', 'Trend lines & anomaly markers', 'Tier-tuned quick actions'] },
+  { id: 'aqi', title: 'The Air You Breathe Is Part of Your Health Record', body: 'RichHealth.ai passively tracks your location\u2019s Air Quality Index, building a complete environmental exposure profile. Richie correlates your headaches with pollution spikes and generates long-term exposure risk assessments.', badges: ['30-Day Analytics', 'Trend Detection', 'Health Impact Scoring'], list: ['AQI (US & China standards)', 'PM2.5, PM10, O\u2083', 'Temperature & Humidity'] },
+  { id: 'health-news', title: 'Health News That Matters to Where You Live', body: 'Richie curates health news based on your location, health profile, and family conditions. When dengue outbreaks hit your city, you\u2019re the first to know. When new research emerges about a condition in your family, Richie brings it to you. No noise. No clickbait.', badges: ['Location-Aware', 'Condition-Matched', 'Outbreak Alerts', 'Daily Digest'] },
+  { id: 'nutricheck', title: 'NutriCheck \u2014 Should I Eat This? Ask Richie.', body: 'Type any food item and get an instant, personalised recommendation. NutriCheck analyses food against YOUR health profile \u2014 conditions, medications, allergies, blood work and goals \u2014 with deep understanding of Indian cuisine, regional staples and dietary patterns.', badges: ['Foods to Eat', 'Foods to Avoid', 'Meal Plan Ideas', 'Indian Cuisine Native'] },
+  { id: 'medications', title: 'Never Miss a Dose. Never Miss an Interaction.', body: 'Track every medication with full details, including Indian brands and generics \u2014 Crocin, Dolo-650, Shelcal, Thyronorm. Richie uses your complete medication list when analysing symptoms, evaluating food interactions, and providing health recommendations.' },
+  { id: 'doctor', title: 'A Bridge Between You and Your Doctor', body: 'The Doctor Portal gives physicians a comprehensive view: medical history, medications, symptoms, Richie\u2019s report analyses, AQI exposure, and health alerts \u2014 all in one place. Data-rich, continuous care.', badges: ['Patient health status', 'Comprehensive profiles', 'Report verification', 'Risk scoring'] },
+  { id: 'podcasts', title: 'Health Knowledge, Curated & Delivered', body: 'A curated library of health podcasts with full playback controls, bookmarking and progress persistence. Ultra users can request custom episodes on the topics that matter to their family.' },
+  { id: 'workout', title: 'Complete Fitness Tracking', body: 'Browse exercises, build custom workouts, and log history. Richie factors exercise data into health recommendations \u2014 suggesting rest, adjusting calories, correlating patterns with symptoms and cycle.' },
 ];
 
 const MOAT = [
-  { icon: I.brain, title: 'India-First Proprietary AI', body: 'Richie is trained on Indian medical terminology, doctor communication patterns, regional disease profiles, and local medication databases. No Western AI understands the difference between Crocin and Tylenol, or why a patient in Mumbai needs fundamentally different guidance than one in Montana.', dialogKey: 'india-first' },
-  { icon: I.shield, title: 'Data Compounding Effect', body: 'Every day a user logs data, Richie gets exponentially smarter. After 90 days, switching costs become enormous. After a year, the platform holds an irreplaceable health history.', dialogKey: 'data-compounding' },
-  { icon: I.network, title: 'Family Network Effect', body: 'Each family member who joins multiplies Richie\u2019s intelligence for EVERY member. A family of 4 gets 16x value through cross-referential health intelligence.', dialogKey: 'family-network' },
-  { icon: I.layers, title: 'Multi-Model AI Architecture', body: '15+ AI models in a cascade fallback system. Not dependent on any single AI provider. 99.9% uptime without vendor lock-in.', dialogKey: 'multi-model' },
-  { icon: I.triangle, title: 'Doctor-Patient-AI Triangle', body: 'The only platform where Richie\u2019s analysis is verified by licensed doctors, creating a trust layer that pure AI can\u2019t match.', dialogKey: 'doctor-triangle' },
-  { icon: I.wind, title: 'Environmental Context Layer', body: 'GPS-tracked AQI data as a health variable is unprecedented. In India where air pollution causes 1.67M deaths annually, this feature alone is a market maker.', dialogKey: 'environmental' },
+  { icon: I.brain, title: 'India-First Proprietary AI', body: 'Most "global" health AIs are trained on American charts and translated for everyone else. Richie is the inverse \u2014 built on Indian prescriptions, brand names like Crocin and Dolo-650, regional disease patterns, doctor handwriting and dietary context. Then engineered to scale to the rest of the world from that foundation.', dialogKey: 'india-first' },
+  { icon: I.shield, title: 'Data Compounds. Lock-In Doesn\'t.', body: 'Every report, symptom, vital, period log and check-in deepens Richie\'s understanding of you. After 90 days, no other app can match the context. After a year, the value is irreplaceable \u2014 and you can still export or delete every byte of it. The moat is genuine usefulness, not friction.', dialogKey: 'data-compounding' },
+  { icon: I.network, title: 'Family Network Effect', body: 'One person logs. The whole family gets smarter. A family of four produces roughly 16\u00d7 the cross-referential signal of one isolated user \u2014 hereditary risk, shared environment, caregiver oversight. No other health platform on the planet ships this loop.', dialogKey: 'family-network' },
+  { icon: I.layers, title: 'AI Council, Not One Model', body: 'On Pro and Ultra, Richie runs as a council of frontier models \u2014 Gemini, GPT-5.3 and Claude 4.5 \u2014 each reading your data independently before the system synthesises a single grounded answer. Cascading fallback across 15+ models keeps the council resilient at 99.9% uptime.', dialogKey: 'multi-model' },
+  { icon: I.triangle, title: 'Doctor-Verified, Not Doctor-Replaced', body: 'AI on its own is a liability in healthcare. Licensed physicians review Richie\'s analyses on Ultra, train the system with structured feedback, and stand behind the most important findings. Speed of AI, judgment of medicine \u2014 neither, alone, is enough.', dialogKey: 'doctor-triangle' },
+  { icon: I.wind, title: 'Environment as a Health Variable', body: 'Your AQI exposure isn\'t lifestyle metadata \u2014 it\'s a clinical input. Richie correlates pollution spikes with your symptoms, weights long-term exposure into risk scoring, and surfaces local outbreak alerts. In a country where air kills 1.67M people a year, this isn\'t a feature. It\'s a category.', dialogKey: 'environmental' },
 ];
 
 const STATS = [
@@ -155,15 +233,16 @@ const STATS = [
 ];
 
 const PRICING = [
-  { name: 'Basic', originalPrice: '\u20B91,249', price: '\u20B9999', period: '/month', usd: '~$12/mo', discount: '20% OFF', popular: false, dialogKey: 'pricing-basic', features: ['Single user', '<b>3</b> AI report analyses per month', '<b>Full</b> symptom & measurement tracking', 'Richie AI chat (standard models)', 'AQI monitoring', 'NutriCheck', 'Health news feed', 'Medication tracking'] },
-  { name: 'Pro', originalPrice: '\u20B93,599', price: '\u20B92,499', period: '/month', usd: '~$30/mo', discount: '30% OFF', popular: true, dialogKey: 'pricing-pro', features: ['Up to <b>3</b> family members', '<b>20</b> AI report analyses per month', '<b>Everything in Basic</b>', 'Premium AI models (Gemini, Llama 70B+)', 'Family health network', 'Doctor connection', 'Priority support'] },
-  { name: 'Ultra', originalPrice: '\u20B99,999', price: '\u20B94,999', period: '/3 months', usd: '~$60/quarter', discount: '50% OFF', popular: false, dialogKey: 'pricing-ultra', features: ['<b>6+</b> family members', '<b>100</b> AI report analyses per month', '<b>Everything in Pro</b>', 'Doctor review of AI analyses', 'Custom podcast requests', 'Dedicated health insights', 'White-glove onboarding'] },
+  { name: 'Plus', originalPrice: '\u20B91,249', price: '\u20B9999', period: '/3 months', perMonth: '\u20B9333/mo equivalent', usd: '~$12 / 3 mo', discount: '20% OFF', popular: false, dialogKey: 'pricing-plus', features: ['<b>5</b> medical report uploads / mo', '<b>5</b> AI health analyses / mo', '<b>10</b> NutriCheck meals / mo', 'Richie AI chat (standard models, 25 msgs/session)', '<b>1</b> dependent profile', 'Period & cycle tracker', 'Full symptom & vitals tracking', 'AQI monitoring \u00B7 Medication tracking'] },
+  { name: 'Pro', originalPrice: '\u20B93,599', price: '\u20B92,499', period: '/3 months', perMonth: '\u20B9833/mo equivalent', usd: '~$30 / 3 mo', discount: '30% OFF', popular: true, dialogKey: 'pricing-pro', features: ['<b>Everything in Plus</b>', '<b>AI Council</b> \u2014 Gemini \u00B7 GPT-5.3 \u00B7 Claude 4.5', '<b>10</b> reports & <b>10</b> health analyses / mo', '<b>20</b> NutriCheck meals / mo', 'Premium AI models, 50 msgs/session', 'Up to <b>2</b> dependents', 'Hereditary risk engine', 'Weekly health check-ins', 'Doctor connections & sharing'] },
+  { name: 'Ultra', originalPrice: '\u20B99,999', price: '\u20B94,999', period: '/12 months', perMonth: '\u20B9417/mo equivalent', usd: '~$60 / year', discount: '50% OFF', popular: false, dialogKey: 'pricing-ultra', features: ['<b>Everything in Pro</b>', '<b>Unlimited</b> AI report analyses', '<b>Unlimited</b> NutriCheck meals', 'All premium models, 100 msgs/session', 'Up to <b>5</b> dependents & <b>5</b> family members', 'Doctor review of AI analyses', 'Check-ins every 3 days', 'Custom podcast requests', 'White-glove onboarding'] },
 ];
 
 const TRUST_ITEMS = [
-  { icon: I.lock, img: null, title: 'End-to-End Privacy', body: 'Your health data is encrypted at rest and in transit. We never sell, share, or mine your personal health information. Your data belongs to you. Period.', cta: 'How do we protect your data?', dialogKey: 'privacy' },
-  { icon: null, img: icMentalHealth, title: 'Private Mental Health Chat', body: 'Richie\u2019s mental health chat is completely private: no tracking, no profiling, no data retention beyond what you choose. A safe, culturally aware space for your most sensitive conversations.', cta: 'What is private mental health chat?', dialogKey: 'mental-health' },
-  { icon: I.shield, img: null, title: 'Your Data, Your Control', body: 'Export or delete your data anytime. Granular sharing controls let you decide exactly what your family or doctors can see. Full data sovereignty, always.', cta: 'See how data control works', dialogKey: 'data-control' },
+  { icon: I.lock, img: null, title: 'Encrypted on every layer that touches your body.', body: 'TLS 1.3 in transit. AES-256 at rest. Reports stored in segregated, access-controlled object storage with request-level audit logs. We assume breaches are not impossible \u2014 and design like a security team that has lived through one.', cta: 'Read the full security model', dialogKey: 'privacy' },
+  { icon: null, img: icMentalHealth, title: 'Mental health conversations leave no shadow.', body: 'Wellness Chat with Richie is treated differently from everything else. No model training. No behavioural profiling. Retention only as long as you choose. A safe, judgment-free space \u2014 and one that respects how mental health is actually talked about.', cta: 'What makes Wellness Chat private', dialogKey: 'mental-health' },
+  { icon: I.shield, img: null, title: 'Your data is portable. Your account is closeable. One tap.', body: 'Export every report, vital, period log, medication and conversation as structured files at any time. Permanently delete your account from inside the app \u2014 we keep no shadow copies. Granular per-record sharing controls for family, dependents and doctors.', cta: 'How sovereignty works in the app', dialogKey: 'data-control' },
+  { icon: I.eyeOff, img: null, title: 'We do not sell, share, or monetise your health data. Ever.', body: 'No advertising network. No data broker. No insurer pre-feed. No employer wellness scoring. Selling personal health data is the precise opposite of why this product exists \u2014 and the business model is built around making sure we never need to.', cta: 'See what we never do with your data', dialogKey: 'privacy' },
 ];
 
 const ROADMAP = [
@@ -330,13 +409,156 @@ function MockupNews() {
   );
 }
 
-const PHONE_SLIDES = [splashScreen, vitalsScreenImg, measurementsImg, medicalReportsImg, medicationsScreenImg, addSymptomImg, addMeasurementImg];
+function MockupDependents() {
+  const deps = [
+    { name: 'Aarav (Son · 7y)', tag: 'CHILD', color: 'good', detail: 'Vitamin D · 28 ng/mL' },
+    { name: 'Mom (62y)', tag: 'ELDER', color: 'fair', detail: 'BP 138/86 · 4 meds' },
+    { name: 'Dadaji', tag: 'DECEASED', color: 'poor', detail: 'Cardiac · hereditary' },
+  ];
+  return (
+    <div className="mockup-doctor">
+      <div className="doctor-side" style={{flex:1}}>
+        <div className="doctor-label">DEPENDENTS</div>
+        {deps.map((d,i)=>(
+          <div key={i} className="doctor-row">
+            <div className={`status-dot ${d.color}`}/>
+            <span style={{fontSize:'.78rem'}}>{d.name}</span>
+            <span className="health-label">{d.tag}</span>
+          </div>
+        ))}
+        <div style={{marginTop:8,fontSize:'.7rem',color:'var(--text-tertiary)'}}>Caregiver-aware Richie · separate health graphs</div>
+      </div>
+    </div>
+  );
+}
+
+function MockupGenetics() {
+  const risks = [
+    { label: 'Type 2 Diabetes', level: 'HIGH', pct: 78 },
+    { label: 'Hypertension', level: 'MOD', pct: 54 },
+    { label: 'Hypothyroidism', level: 'MOD', pct: 46 },
+    { label: 'Cardiac (early)', level: 'LOW', pct: 22 },
+  ];
+  return (
+    <div className="mockup-chart">
+      <div className="chart-header">HEREDITARY RISK MAP · YOU</div>
+      {risks.map((r,i)=>(
+        <div key={i} className="med-card glass-card" style={{marginBottom:8}}>
+          <div className="med-info">
+            <div className="med-name">{r.label}</div>
+            <div className="med-details">From: parents + grandparents · weighted for South Asian genetics</div>
+          </div>
+          <span className={`med-status ${r.level==='HIGH'?'active':r.level==='MOD'?'active':'completed'}`}>{r.level} · {r.pct}%</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MockupPeriod() {
+  return (
+    <div className="mockup-period-wrap">
+      <div className="mockup-period-frame">
+        <img src={scrHealthHubPeriod} alt="Period History inside Health Hub" className="mockup-period-img" />
+      </div>
+      <div className="mockup-period-caption">
+        <span className="mockup-period-icon">{AppIcon.menstrual}</span>
+        <span>Period History sits next to BP and glucose — not in a separate app.</span>
+      </div>
+    </div>
+  );
+}
+
+function MockupCouncil() {
+  const models = [
+    { name: 'Gemini 2.0', verdict: 'Likely iron-deficiency anaemia. Suggest ferritin + B12 panel.' },
+    { name: 'GPT-5.3', verdict: 'Concur. Add thyroid panel — TSH trending up over 6 months.' },
+    { name: 'Claude 4.5', verdict: 'Concur. Flag PCOS markers given cycle irregularity + LH/FSH.' },
+  ];
+  return (
+    <div className="mockup-chat">
+      <div className="chat-msg chat-user">Why have I been feeling exhausted for 6 weeks?</div>
+      {models.map((m,i)=>(
+        <div key={i} className="chat-msg chat-ai" style={{padding:'10px 14px'}}>
+          <div className="chat-ai-label">{m.name}</div>
+          <div style={{fontSize:'.78rem'}}>{m.verdict}</div>
+        </div>
+      ))}
+      <div className="model-chips">
+        <span className="model-chip active">Consensus</span>
+        <span className="model-chip">Order: ferritin · B12 · TSH · LH/FSH</span>
+      </div>
+    </div>
+  );
+}
+
+function MockupCheckIn() {
+  const qs = [
+    { q: 'Energy today (1–10)', a: '7' },
+    { q: 'Sleep last night', a: '6h 40m' },
+    { q: 'Mood', a: 'Steady' },
+    { q: 'Pain anywhere?', a: 'Lower back · 3' },
+    { q: 'Hydration', a: '~2.4 L' },
+  ];
+  return (
+    <div className="mockup-meds">
+      {qs.map((x,i)=>(
+        <div key={i} className="med-card glass-card">
+          <div className="med-info">
+            <div className="med-name">{x.q}</div>
+            <div className="med-details">{x.a}</div>
+          </div>
+          <span className="med-status active">logged</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MockupHealthHub() {
+  const tiles = [
+    { l: 'BP', v: '124/82' },
+    { l: 'Sugar', v: '96 mg/dL' },
+    { l: 'HR', v: '72 bpm' },
+    { l: 'SpO₂', v: '98%' },
+    { l: 'Weight', v: '74.2 kg' },
+    { l: 'Temp', v: '36.7°C' },
+  ];
+  return (
+    <div className="mockup-meds" style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8}}>
+      {tiles.map((t,i)=>(
+        <div key={i} className="med-card glass-card" style={{flexDirection:'column',alignItems:'flex-start',padding:'10px 12px'}}>
+          <div className="med-details" style={{fontSize:'.65rem',letterSpacing:'.08em',textTransform:'uppercase'}}>{t.l}</div>
+          <div className="med-name" style={{fontSize:'1.05rem'}}>{t.v}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* Each slide can be { src, tall } — tall slides auto-scroll while active.
+   Curated, deduplicated set covering: Services, Health Hub, Richie council, Period, NutriCheck, Health Analysis, Biometric. */
+const PHONE_SLIDES = [
+  { src: scrServicesLong, tall: true },         // Services hub — tall, auto-scroll
+  { src: scrHealthHubPeriod, tall: false },     // Health Hub
+  { src: scrRichieDependent, tall: false },     // Richie council w/ dependent picker
+  { src: scrHealthAnalysisLong, tall: true },   // Health Analysis donut + analysis — tall
+  { src: scrNutriResult, tall: false },         // NutriCheck verdict
+  { src: scrCheckin, tall: false },             // Check-In history
+  { src: scrBiometric, tall: false },           // Biometric lock
+];
 
 const VISUAL_MAP = {
   'ai-chat': MockupChat,
   'family-network': MockupNetwork,
+  dependents: MockupDependents,
+  genetics: MockupGenetics,
+  period: MockupPeriod,
+  council: MockupCouncil,
   symptoms: MockupChart,
+  checkin: MockupCheckIn,
   reports: MockupUpload,
+  'health-hub': MockupHealthHub,
   aqi: MockupAQI,
   'health-news': MockupNews,
   nutricheck: MockupFood,
@@ -349,6 +571,36 @@ const VISUAL_MAP = {
 /* =============================================================
    SECTIONS
    ============================================================= */
+/* Hero phone slide — measures overflow exactly so tall screenshots
+   scroll just to the bottom and back, never beyond. */
+function HeroSlide({ src, tall, active }) {
+  const wrapRef = useRef(null);
+  const imgRef = useRef(null);
+  const [overflow, setOverflow] = useState(0);
+  const measure = useCallback(() => {
+    const img = imgRef.current;
+    const wrap = wrapRef.current;
+    if (!img || !wrap || !img.naturalWidth) return;
+    const rendered = img.naturalHeight * (wrap.clientWidth / img.naturalWidth);
+    setOverflow(Math.max(0, rendered - wrap.clientHeight));
+  }, []);
+  useEffect(() => {
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [measure]);
+  const style = tall && overflow > 0 ? { '--overflow': `-${overflow}px` } : {};
+  return (
+    <div
+      ref={wrapRef}
+      className={`phone-slide-wrap ${active ? 'active' : ''} ${tall ? 'is-tall' : ''}`}
+      style={style}
+    >
+      <img ref={imgRef} src={src} alt="RichHealth App" className="phone-slide" onLoad={measure} />
+    </div>
+  );
+}
+
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -367,10 +619,11 @@ function Navbar() {
         </a>
         <div className={`nav-links ${menuOpen ? 'mobile-open' : ''}`}>
           <a href="#platform" onClick={close}>Platform</a>
+          <a href="#inside" onClick={close}>The App</a>
           <a href="#moat" onClick={close}>Why Us</a>
           <a href="#pricing" onClick={close}>Pricing</a>
           <a href="#trust" onClick={close}>Privacy</a>
-          <a href="#roadmap" onClick={close}>Roadmap</a>
+          <a href="#/careers" onClick={close}>Careers</a>
         </div>
         <div className={`hamburger ${menuOpen ? 'open' : ''}`} onClick={() => setMenuOpen(!menuOpen)} role="button" aria-label="Toggle menu" tabIndex={0}><span/><span/><span/></div>
       </div>
@@ -383,9 +636,11 @@ function Hero() {
   const rotatingWords = ['Health.', 'Wellness.', 'Future.', 'Story.'];
   const [slideIdx, setSlideIdx] = useState(0);
   useEffect(() => {
-    const timer = setInterval(() => setSlideIdx(prev => (prev + 1) % PHONE_SLIDES.length), 4500);
-    return () => clearInterval(timer);
-  }, []);
+    // Tall slides linger longer so the auto-scroll animation can finish
+    const dwell = PHONE_SLIDES[slideIdx].tall ? 7500 : 4500;
+    const timer = setTimeout(() => setSlideIdx((slideIdx + 1) % PHONE_SLIDES.length), dwell);
+    return () => clearTimeout(timer);
+  }, [slideIdx]);
 
   return (
     <section className="hero" id="hero">
@@ -393,7 +648,7 @@ function Hero() {
       <div className="dot-grid" />
       <div className="container hero-inner">
         <div className="hero-text">
-          <div className="hero-badge">{I.dna}<span>Your health, Intelligently Rich</span></div>
+          <div className="hero-badge">{I.dna}<span>Your family's health, intelligently Rich.</span></div>
 
           <h1 className="hero-headline">
             <span className="hero-line">
@@ -410,7 +665,7 @@ function Hero() {
             </span>
           </h1>
 
-          <p className="hero-sub">Meet <span className="hero-richie-highlight">Richie</span>, your personal health AI that analyzes reports, tracks symptoms, knows your family's health history, monitors your environment, and understands Indian health context like no other AI can. Powered by 15+ leading AI models.</p>
+          <p className="hero-sub">Meet <span className="hero-richie-highlight">Richie</span> — your family's personal health AI. Reads your reports. Tracks symptoms, vitals, periods and check-ins. Manages dependents (children, ageing parents) under one account. Connects family hereditary signals into a single risk map. Powered by an AI Council of Gemini, GPT-5.3, Claude 4.5 — and 15+ specialised models behind them.</p>
 
           <div className="store-buttons" style={{ animation: 'fadeInUp .7s var(--ease-spring) 1.1s both' }}>
             <a href="#contact" className="store-btn">{I.playStore}<span className="store-btn-text"><small>GET IT ON</small><span>Google Play</span></span></a>
@@ -428,8 +683,8 @@ function Hero() {
           <div className="phone-wrap">
             <div className="phone-frame">
               <div className="phone-slideshow">
-                {PHONE_SLIDES.map((src, i) => (
-                  <img key={i} src={src} alt="RichHealth App" className={`phone-slide ${i === slideIdx ? 'active' : ''}`} />
+                {PHONE_SLIDES.map((s, i) => (
+                  <HeroSlide key={i} src={s.src} tall={s.tall} active={i === slideIdx} />
                 ))}
               </div>
             </div>
@@ -457,7 +712,7 @@ function ProblemSection() {
         <div className="problem-header sr">
           <div className="section-label">The Problem</div>
           <h2 className="section-title">Healthcare is <span className="broken-text">{'Broken'.split('').map((c, i) => <span key={i} className="broken-letter" style={{'--i': i}}>{c}</span>)}</span> for Families</h2>
-          <p className="section-subtitle">Three fundamental failures prevent families from taking control of their health. RichHealth.ai combines our proprietary India-first AI with the world's top models to solve each one.</p>
+          <p className="section-subtitle">Three fundamental failures sit between Indian families and continuous, intelligent care. We built Richie — and the platform around it — to fix all three at once.</p>
         </div>
         <div className="problem-grid">
           {PROBLEMS.map((p, i) => (
@@ -520,14 +775,597 @@ function PlatformSection() {
   );
 }
 
+/* =============================================================
+   FOUR TABS — what the app actually looks like inside.
+   Mirrors the real bottom-nav structure of the Android app:
+   Richie · Health Hub · Services · Profile.
+   Each tab gets a real screenshot (tall ones auto-scroll exactly
+   to their overflow, no over-scroll), a calm explanation, and
+   bullets that use the same icon language as the app drawables.
+   ============================================================= */
+const TABS = [
+  {
+    id: 'richie',
+    tab: 'Richie',
+    img: scrRichieDependent,
+    tall: false,
+    title: 'Richie — the AI that asks who you’re asking for first.',
+    body: 'Open Richie and the first decision is whose body you’re reasoning about. Yourself, a child you manage, an ageing parent. Richie loads the right health graph, swaps in caregiver-aware reasoning, applies paediatric or geriatric reference ranges, and starts with a usage counter and tier — no surprises.',
+    bullets: [
+      { icon: AppIcon.brain, text: 'Dependent picker is part of the chat header — not buried in settings.' },
+      { icon: AppIcon.heart, text: 'On Pro and Ultra, an AI council reconciles multiple frontier models before answering.' },
+      { icon: AppIcon.doc, text: 'Suggested prompts adapt to whose profile is loaded — not the same generic five.' },
+    ],
+  },
+  {
+    id: 'health-hub',
+    tab: 'Health Hub',
+    img: scrHealthHubPeriod,
+    tall: false,
+    title: 'Health Hub — every record, every metric, one place.',
+    body: 'The Health Hub splits into Daily Tracking and Health Records. Symptoms, Measurements and Period History live next to Medical Reports, Medications and Family Health. End-to-end encrypted, only-you-have-access — and you reach any of the six surfaces in one tap.',
+    bullets: [
+      { icon: AppIcon.heart, text: 'Symptoms, vitals and cycle logging are first-class daily surfaces.' },
+      { icon: AppIcon.menstrual, text: 'Period History sits beside BP and glucose — never siloed in a separate app.' },
+      { icon: AppIcon.family, text: 'Family Health stores hereditary conditions across living and deceased relatives.' },
+    ],
+  },
+  {
+    id: 'services',
+    tab: 'Services',
+    img: scrServicesLong,
+    tall: true,
+    title: 'Services — your daily decision surface.',
+    body: 'A long, deliberate scroll: Health Analysis on top, then your active plan, today’s Health Advisory rewritten as advice (not just an AQI number), Health Check-In, Diet Guide, NutriCheck, Find a Doctor, Wellness Chat, Log Workout, Exercises, and a Health Intel feed of sourced audio matched to the conditions on your profile. The whole tab is one continuous answer to “what should I do today?”.',
+    bullets: [
+      { icon: AppIcon.air, text: 'Health Advisory rewrites today’s air quality and pollen into a personal action.' },
+      { icon: AppIcon.food, text: 'NutriCheck and Diet Guide share the same dietary ledger Richie reads from.' },
+      { icon: AppIcon.water, text: 'Health Check-In tracks behaviour wearables can’t — sleep, hydration, stress, mood, cycle.' },
+    ],
+  },
+  {
+    id: 'profile',
+    tab: 'Profile',
+    img: scrBiometric,
+    tall: false,
+    title: 'Profile — privacy you can actually defend.',
+    body: 'Optional fingerprint or face unlock on app open. Per-record share controls. Granular consent over what Richie can see and what your family or doctors can. Export everything. Delete everything. Health records belong on a tier above WhatsApp messages, and the Profile tab is where that promise becomes settings you control.',
+    bullets: [
+      { icon: AppIcon.fingerprint, text: 'Biometric lock — fingerprint or face — survives screenshots and shared phones.' },
+      { icon: AppIcon.family, text: 'Per-record sharing toggles for family, dependents and doctor connections.' },
+      { icon: AppIcon.doc, text: 'Export your data as structured files at any time. One-tap permanent delete.' },
+    ],
+  },
+];
+
+function FourTabsSection() {
+  const [idx, setIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const len = TABS.length;
+
+  useEffect(() => {
+    if (paused) return undefined;
+    const dwell = TABS[idx].tall ? 10000 : 7000;
+    const t = setTimeout(() => setIdx((idx + 1) % len), dwell);
+    return () => clearTimeout(t);
+  }, [idx, paused, len]);
+
+  const slide = TABS[idx];
+
+  return (
+    <section className="tabs-section" id="inside" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+      <div className="container">
+        <div className="tabs-header sr">
+          <div className="section-label">The App</div>
+          <h2 className="section-title">Four tabs. One continuous health graph.</h2>
+          <p className="section-subtitle">The bottom navigation is intentional. Richie is where you ask. Health Hub is where you record. Services is where you act. Profile is where you control. Every tap inside one tab updates context every other tab can read.</p>
+        </div>
+
+        <div className="tabs-stage">
+          <div className="tabs-rail">
+            {TABS.map((t, i) => (
+              <button
+                key={t.id}
+                className={`tabs-rail-btn ${i === idx ? 'active' : ''}`}
+                onClick={() => setIdx(i)}
+              >
+                <span className="tabs-rail-label">{t.tab}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="tabs-frame-col">
+            <div className="tabs-phone-frame">
+              <div className="tabs-phone-screen">
+                {TABS.map((t, i) => (
+                  <TabSlide
+                    key={t.id}
+                    src={t.img}
+                    active={i === idx}
+                    tall={t.tall}
+                    duration={t.tall ? 10 : 7}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="tabs-content-col">
+            <div key={slide.id} className="tabs-content">
+              <div className="tabs-content-tag">{slide.tab} tab</div>
+              <h3 className="tabs-content-title">{slide.title}</h3>
+              <p className="tabs-content-body">{slide.body}</p>
+              <ul className="tabs-content-bullets">
+                {slide.bullets.map((b, i) => (
+                  <li key={i}>
+                    <span className="tabs-bullet-icon">{b.icon}</span>
+                    <span>{b.text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* TabSlide — measures the image vs container and animates exactly
+   the overflow distance, so tall screens never over-scroll. */
+function TabSlide({ src, active, tall, duration }) {
+  const imgRef = useRef(null);
+  const wrapRef = useRef(null);
+  const [overflow, setOverflow] = useState(0);
+
+  const measure = useCallback(() => {
+    const img = imgRef.current;
+    const wrap = wrapRef.current;
+    if (!img || !wrap || !img.complete || !img.naturalWidth) return;
+    const renderedHeight = img.naturalHeight * (wrap.clientWidth / img.naturalWidth);
+    const o = Math.max(0, renderedHeight - wrap.clientHeight);
+    setOverflow(o);
+  }, []);
+
+  useEffect(() => {
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [measure]);
+
+  const style = tall && overflow > 0
+    ? { '--overflow': `-${overflow}px`, '--scroll-dur': `${duration}s` }
+    : {};
+
+  return (
+    <div
+      ref={wrapRef}
+      className={`tabs-slide ${active ? 'active' : ''} ${tall ? 'is-tall' : ''}`}
+      style={style}
+    >
+      <img ref={imgRef} src={src} alt="" className="tabs-slide-img" onLoad={measure} />
+    </div>
+  );
+}
+
+/* =============================================================
+   CAREERS SECTION
+   ============================================================= */
+/* =============================================================
+   HASH ROUTING
+   ============================================================= */
+function usePage() {
+  const parse = () => {
+    const h = window.location.hash || '';
+    if (h.startsWith('#/careers/apply/')) return { name: 'apply', jobId: h.replace('#/careers/apply/', '') };
+    if (h === '#/careers' || h.startsWith('#/careers')) return { name: 'careers' };
+    if (h.startsWith('#/legal/')) return { name: 'legal', slug: h.replace('#/legal/', '') };
+    return { name: 'home', anchor: h.replace(/^#/, '') };
+  };
+  const [page, setPage] = useState(parse());
+  useEffect(() => {
+    const onHash = () => {
+      const next = parse();
+      setPage(prev => {
+        // Only scroll-to-top when the page actually changes (not when an in-page anchor changes)
+        if (prev.name !== next.name) {
+          window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        } else if (next.name === 'home' && next.anchor) {
+          // In-page anchor on home — let the browser do native smooth-scroll
+          const el = document.getElementById(next.anchor);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        return next;
+      });
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+  return page;
+}
+
+/* =============================================================
+   CAREERS — full standalone page at #/careers
+   Serious, calm, no fake numbers. Big cards. Research-first tone.
+   ============================================================= */
+function CareersPage() {
+  return (
+    <div className="page-shell careers-page">
+      <PageNav active="careers" />
+      <main>
+        <section className="careers-hero careers-hero-clean">
+          <div className="container careers-hero-inner">
+            <div className="careers-eyebrow">Careers</div>
+            <h1 className="careers-h1">
+              We are building the predictive layer of healthcare.
+            </h1>
+            <p className="careers-lede">
+              RichHealth.ai turns longitudinal personal, family and environmental health data into a continuously learning model of how a person’s body is actually trending. The work is technical, clinical, and consequential. We are hiring researchers and engineers who want to do that work for a living.
+            </p>
+            <div className="careers-hero-actions">
+              <a className="btn-primary" href="#openings">See open roles</a>
+              <a className="link-cta" href="mailto:careers@richhealth.app?subject=Open%20Application">Send an open application</a>
+            </div>
+          </div>
+        </section>
+
+        <section className="careers-principles-section">
+          <div className="container">
+            <div className="careers-principles">
+              <div className="careers-principle">
+                <h4>Research-grade rigour.</h4>
+                <p>We expect papers, evaluation harnesses, ablations and honest error analysis — not vibes-driven model releases. Predictive claims have to clear calibration and lead-time thresholds before they ship.</p>
+              </div>
+              <div className="careers-principle">
+                <h4>Clinical seriousness.</h4>
+                <p>Every meaningful release is reviewed by licensed clinicians on our network. Models that don’t hold up under that review do not ship. We treat this as a feature, not a tax.</p>
+              </div>
+              <div className="careers-principle">
+                <h4>Senior bias.</h4>
+                <p>We over-index on staff- and principal-level hires. Most of our open roles are for people who have already led work like this once and are looking to do it again — with ownership.</p>
+              </div>
+              <div className="careers-principle">
+                <h4>Quiet equity.</h4>
+                <p>Every hire gets meaningful ownership. We don’t talk about it in numbers on a careers page — we talk about it on the offer call, with the cap table on the screen.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="careers-openings-section" id="openings">
+          <div className="container">
+            <div className="careers-section-head">
+              <div className="careers-eyebrow">Open Roles</div>
+              <h2 className="careers-h2">Where we are hiring right now.</h2>
+            </div>
+
+            <div className="careers-openings">
+              {JOBS.map((j) => (
+                <article key={j.id} className="opening-card">
+                  <div className="opening-card-head">
+                    <div className="opening-team">{j.team}</div>
+                    <div className="opening-type">{j.type}</div>
+                  </div>
+                  <h3 className="opening-title">{j.title}</h3>
+                  <p className="opening-summary">{j.summary}</p>
+                  <dl className="opening-meta">
+                    <div><dt>Location</dt><dd>{j.location}</dd></div>
+                    <div><dt>Compensation</dt><dd>{j.pay}</dd></div>
+                  </dl>
+                  <div className="opening-actions">
+                    <a className="btn-primary opening-apply" href={`#/careers/apply/${j.id}`}>Apply for this role</a>
+                    <a className="link-cta" href={`#/careers/apply/${j.id}`}>View full description →</a>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="careers-openfooter">
+              <p>Don’t see your role? If you are a senior researcher, engineer or clinician with relevant work, write to <a href="mailto:careers@richhealth.app?subject=Open%20Application">careers@richhealth.app</a> with a one-page note on what you would build here.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+/* =============================================================
+   APPLICATION PAGE — full-page form at #/careers/apply/:jobId
+   ============================================================= */
+function ApplicationPage({ jobId }) {
+  const job = JOBS.find(j => j.id === jobId);
+  const [step, setStep] = useState(1);
+  const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState({
+    firstName: '', lastName: '', email: '', phone: '',
+    country: '', city: '', linkedin: '', portfolio: '', github: '',
+    yearsExperience: '', currentRole: '', currentCompany: '',
+    workAuth: '', noticePeriod: '', expectedComp: '', remoteOk: '',
+    whyRichhealth: '', proudestWork: '', heardFrom: '',
+    consentPrivacy: false, consentBackground: false,
+  });
+
+  if (!job) {
+    return (
+      <div className="page-shell">
+        <PageNav active="careers" />
+        <main className="apply-not-found">
+          <div className="container" style={{padding:'120px 0',textAlign:'center'}}>
+            <h2 className="section-title">Role not found</h2>
+            <p className="section-subtitle">The role you tried to open doesn't exist anymore. It may have been filled.</p>
+            <a className="btn-primary" href="#/careers">See open roles</a>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const onChange = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
+  const canStep1 = form.firstName && form.lastName && form.email && form.country && form.city;
+  const canStep2 = form.yearsExperience && form.currentRole && form.workAuth && form.expectedComp;
+  const canStep3 = form.whyRichhealth.trim().length >= 80 && form.proudestWork.trim().length >= 80 && form.consentPrivacy;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!canStep3) return;
+    const subject = encodeURIComponent(`Application — ${job.title} — ${form.firstName} ${form.lastName}`);
+    const lines = [
+      `Role: ${job.title}`,
+      `Team: ${job.team}`,
+      `---`,
+      `Name: ${form.firstName} ${form.lastName}`,
+      `Email: ${form.email}`,
+      `Phone: ${form.phone}`,
+      `Location: ${form.city}, ${form.country}`,
+      `LinkedIn: ${form.linkedin}`,
+      `Portfolio: ${form.portfolio}`,
+      `GitHub: ${form.github}`,
+      `---`,
+      `Years of experience: ${form.yearsExperience}`,
+      `Current role: ${form.currentRole}`,
+      `Current company: ${form.currentCompany}`,
+      `Work authorisation: ${form.workAuth}`,
+      `Notice period: ${form.noticePeriod}`,
+      `Expected compensation: ${form.expectedComp}`,
+      `Open to remote: ${form.remoteOk}`,
+      `---`,
+      `Why RichHealth.ai:`,
+      form.whyRichhealth,
+      ``,
+      `Proudest work:`,
+      form.proudestWork,
+      ``,
+      `Heard from: ${form.heardFrom}`,
+    ].join('\n');
+    const body = encodeURIComponent(lines);
+    window.location.href = `mailto:careers@richhealth.app?subject=${subject}&body=${body}`;
+    setSubmitted(true);
+  };
+
+  return (
+    <div className="page-shell apply-page">
+      <PageNav active="careers" />
+      <main>
+        <div className="container apply-container">
+          <a href="#/careers" className="apply-back">&larr; Back to all roles</a>
+
+          <header className="apply-header">
+            <div className="job-team">{job.team}</div>
+            <h1 className="apply-job-title">{job.title}</h1>
+            <div className="job-chiprow">
+              <span className="job-chip">{job.location}</span>
+              <span className="job-chip">{job.type}</span>
+              <span className="job-chip job-chip-pay">{job.pay}</span>
+            </div>
+          </header>
+
+          <div className="apply-grid">
+            <aside className="apply-sidebar">
+              <div className="apply-sidebar-block">
+                <div className="job-section-title">About the role</div>
+                <p className="apply-sidebar-body">{job.summary}</p>
+              </div>
+              <div className="apply-sidebar-block">
+                <div className="job-section-title">What you'll own</div>
+                <ul className="apply-list">
+                  {job.responsibilities.map((r, i) => <li key={i}>{r}</li>)}
+                </ul>
+              </div>
+              <div className="apply-sidebar-block">
+                <div className="job-section-title">What we're looking for</div>
+                <ul className="apply-list">
+                  {job.requirements.map((r, i) => <li key={i}>{r}</li>)}
+                </ul>
+              </div>
+              <div className="apply-sidebar-block apply-sidebar-meta">
+                <div className="job-section-title">Process</div>
+                <ol className="apply-process">
+                  <li>Application reviewed within 5 business days</li>
+                  <li>30-minute intro call with the hiring manager</li>
+                  <li>Take-home or domain conversation (sized for senior time)</li>
+                  <li>Onsite or virtual loop with 3–4 team members</li>
+                  <li>Reference check &amp; offer within 10 days of loop</li>
+                </ol>
+              </div>
+            </aside>
+
+            <section className="apply-form-card">
+              {submitted ? (
+                <div className="apply-submitted">
+                  <div className="apply-submitted-tick">{I.checkCircle}</div>
+                  <h2 className="modal-title">Your draft is open in your email client.</h2>
+                  <p className="modal-body">We pre-filled a structured application addressed to <strong>careers@richhealth.app</strong>. Hit send to officially apply. Attach your CV and any portfolio assets in that email. We respond within 5 business days.</p>
+                  <a className="btn-primary" href="#/careers">Browse other roles</a>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="apply-form" noValidate>
+                  <div className="apply-progress">
+                    <div className={`apply-progress-step ${step >= 1 ? 'active' : ''} ${step > 1 ? 'done' : ''}`}><span>01</span> Personal</div>
+                    <div className="apply-progress-line"/>
+                    <div className={`apply-progress-step ${step >= 2 ? 'active' : ''} ${step > 2 ? 'done' : ''}`}><span>02</span> Background</div>
+                    <div className="apply-progress-line"/>
+                    <div className={`apply-progress-step ${step >= 3 ? 'active' : ''}`}><span>03</span> Why RichHealth</div>
+                  </div>
+
+                  {step === 1 && (
+                    <div className="apply-step">
+                      <h3 className="apply-step-title">Tell us who you are</h3>
+                      <div className="apply-row apply-row-2">
+                        <Field label="First name" required value={form.firstName} onChange={onChange('firstName')} />
+                        <Field label="Last name" required value={form.lastName} onChange={onChange('lastName')} />
+                      </div>
+                      <div className="apply-row apply-row-2">
+                        <Field label="Email" type="email" required value={form.email} onChange={onChange('email')} />
+                        <Field label="Phone" type="tel" placeholder="+1 416 555 0142" value={form.phone} onChange={onChange('phone')} />
+                      </div>
+                      <div className="apply-row apply-row-2">
+                        <Field label="Country" required value={form.country} onChange={onChange('country')} />
+                        <Field label="City" required value={form.city} onChange={onChange('city')} />
+                      </div>
+                      <div className="apply-row apply-row-3">
+                        <Field label="LinkedIn URL" placeholder="https://linkedin.com/in/…" value={form.linkedin} onChange={onChange('linkedin')} />
+                        <Field label="Portfolio / website" placeholder="https://…" value={form.portfolio} onChange={onChange('portfolio')} />
+                        <Field label="GitHub / Scholar" placeholder="https://github.com/… or scholar.google.com/…" value={form.github} onChange={onChange('github')} />
+                      </div>
+                      <div className="apply-actions">
+                        <button type="button" className="btn-primary" disabled={!canStep1} onClick={() => setStep(2)}>Continue &rarr;</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {step === 2 && (
+                    <div className="apply-step">
+                      <h3 className="apply-step-title">Your background</h3>
+                      <div className="apply-row apply-row-2">
+                        <Field label="Years of relevant experience" required type="number" min="0" max="60" value={form.yearsExperience} onChange={onChange('yearsExperience')} />
+                        <SelectField label="Work preference" required value={form.remoteOk} onChange={onChange('remoteOk')}
+                          options={['', 'Fully remote', 'Hybrid', 'Onsite, will relocate', 'Onsite, no relocation']} />
+                      </div>
+                      <div className="apply-row apply-row-2">
+                        <Field label="Current role / title" required value={form.currentRole} onChange={onChange('currentRole')} />
+                        <Field label="Current company" value={form.currentCompany} onChange={onChange('currentCompany')} />
+                      </div>
+                      <div className="apply-row apply-row-2">
+                        <SelectField label="Work authorisation" required value={form.workAuth} onChange={onChange('workAuth')}
+                          options={['', 'Citizen / Permanent resident of country I am applying from', 'Will need sponsorship', 'Other — will note in cover']} />
+                        <Field label="Notice period" placeholder="e.g. 2 months" value={form.noticePeriod} onChange={onChange('noticePeriod')} />
+                      </div>
+                      <Field label="Expected compensation" required placeholder="e.g. CAD 200k base + equity, or ₹65L base + equity" value={form.expectedComp} onChange={onChange('expectedComp')} />
+                      <div className="apply-actions apply-actions-split">
+                        <button type="button" className="link-cta" onClick={() => setStep(1)}>&larr; Back</button>
+                        <button type="button" className="btn-primary" disabled={!canStep2} onClick={() => setStep(3)}>Continue &rarr;</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {step === 3 && (
+                    <div className="apply-step">
+                      <h3 className="apply-step-title">Why RichHealth.ai</h3>
+                      <TextareaField
+                        label="Why this role, why us, why now?"
+                        required minLength={80}
+                        placeholder="80+ characters. Specific is better than enthusiastic — what about this role pulls at you that another wouldn't."
+                        value={form.whyRichhealth}
+                        onChange={onChange('whyRichhealth')}
+                      />
+                      <TextareaField
+                        label="Pick one piece of work you're most proud of and walk us through it"
+                        required minLength={80}
+                        placeholder="80+ characters. What was the problem, what was your decision, what shipped, what would you redo. Links welcome."
+                        value={form.proudestWork}
+                        onChange={onChange('proudestWork')}
+                      />
+                      <SelectField label="How did you hear about us?" value={form.heardFrom} onChange={onChange('heardFrom')}
+                        options={['', 'Word of mouth', 'LinkedIn', 'Y Combinator / accelerator', 'Conference talk', 'Search', 'A current team member', 'Other']} />
+
+                      <div className="apply-consents">
+                        <label className="apply-consent">
+                          <input type="checkbox" checked={form.consentPrivacy} onChange={onChange('consentPrivacy')} required />
+                          <span>I consent to RichHealth Technologies Inc. processing my application data per the <a href="#/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>. I understand I can request deletion at any time.</span>
+                        </label>
+                        <label className="apply-consent">
+                          <input type="checkbox" checked={form.consentBackground} onChange={onChange('consentBackground')} />
+                          <span>I'm okay with a reasonable reference and credentials check if I become a finalist (optional).</span>
+                        </label>
+                      </div>
+
+                      <div className="apply-actions apply-actions-split">
+                        <button type="button" className="link-cta" onClick={() => setStep(2)}>&larr; Back</button>
+                        <button type="submit" className="btn-primary" disabled={!canStep3}>Submit application</button>
+                      </div>
+                      <p className="apply-mailto-note">Submitting opens your email client with a structured draft pre-addressed to careers@richhealth.app. Attach your CV in that draft and hit send.</p>
+                    </div>
+                  )}
+                </form>
+              )}
+            </section>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+function Field({ label, required, ...rest }) {
+  return (
+    <label className="apply-field">
+      <span className="apply-field-label">{label}{required && <span className="apply-required">*</span>}</span>
+      <input className="apply-input" required={required} {...rest} />
+    </label>
+  );
+}
+
+function SelectField({ label, required, options, ...rest }) {
+  return (
+    <label className="apply-field">
+      <span className="apply-field-label">{label}{required && <span className="apply-required">*</span>}</span>
+      <select className="apply-input apply-select" required={required} {...rest}>
+        {options.map((o, i) => <option key={i} value={o}>{o || 'Select…'}</option>)}
+      </select>
+    </label>
+  );
+}
+
+function TextareaField({ label, required, minLength, ...rest }) {
+  return (
+    <label className="apply-field">
+      <span className="apply-field-label">{label}{required && <span className="apply-required">*</span>}{minLength && <span className="apply-hint"> · {minLength}+ chars</span>}</span>
+      <textarea className="apply-input apply-textarea" required={required} minLength={minLength} rows={5} {...rest} />
+    </label>
+  );
+}
+
+/* PageNav — slim navbar reused across non-home pages */
+function PageNav({ active }) {
+  return (
+    <nav className="nav nav-scrolled" role="navigation" aria-label="Main navigation">
+      <div className="container nav-inner">
+        <a href="#/" className="nav-logo" aria-label="RichHealth Home">
+          <img src={logoIcon} alt="" className="nav-logo-icon" />
+          <span className="nav-logo-text">RichHealth<span style={{color:'var(--accent-primary)'}}>.ai</span></span>
+        </a>
+        <div className="nav-links">
+          <a href="#/">Home</a>
+          <a href="#/careers" className={active === 'careers' ? 'nav-active' : ''}>Careers</a>
+          <a href="mailto:hello@richhealth.app">Contact</a>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
 function MoatSection() {
   return (
     <section className="moat-section" id="moat">
       <div className="container">
         <div className="moat-header sr">
-          <div className="section-label">Why RichHealth.ai Wins</div>
-          <h2 className="section-title">Six Layers of Competitive Advantage</h2>
-          <p className="section-subtitle">Richie is built on a proprietary AI trained specifically for Indian health: regional diseases, local medications, doctor communication patterns, and family-first healthcare culture. Combined with five more defensive layers, RichHealth.ai becomes more valuable with every user and impossible to replicate.</p>
+          <div className="section-label">Why RichHealth.ai</div>
+          <h2 className="section-title">The only health AI that knows your family, your environment and your context.</h2>
+          <p className="section-subtitle">Six advantages that compound. India-fluent intelligence. A family-connected data graph. An AI council, not a single model. Doctor-verified analyses. Environmental signal as a clinical input. And a privacy architecture you can actually defend in front of a regulator. Together, they don't just describe a better app — they describe a different category.</p>
         </div>
         <div className="moat-grid">
           {MOAT.map((m, i) => (
@@ -567,7 +1405,7 @@ function MarketSection() {
           ))}
         </div>
         <div className="market-context sr">
-          India alone has 1.4 billion people, most using Android, most without access to quality healthcare. RichHealth.ai is built FROM India, FOR this market, with UPI payments, regional health concerns, and pricing that scales. Developing markets in Southeast Asia, Africa, and Latin America share the exact same pain points.
+          We start where the gap is widest. India: 1.4 billion people, most on Android, most without continuous primary care. RichHealth.ai is engineered for that reality — UPI-native payments, regional disease awareness, family-managed accounts, pricing tuned for Indian incomes. From that base we extend to the Indian diaspora globally, then to Southeast Asia, the Gulf, Africa and Latin America — markets that share the same shape of unmet need.
           <button className="link-cta" onClick={() => window.dispatchEvent(new CustomEvent('openModal', { detail: 'market' }))}>See how RichHealth.ai helps &rarr;</button>
         </div>
       </div>
@@ -594,7 +1432,7 @@ function PricingSection() {
                   <span className="pricing-amount gradient-text">{plan.price}</span>
                   <span className="pricing-period">{plan.period}</span>
                 </div>
-                <div className="pricing-usd">{plan.usd}</div>
+                <div className="pricing-usd">{plan.perMonth} · {plan.usd}</div>
               </div>
               <div className="pricing-features">{plan.features.map((f,fi)=>(<div key={fi} className="pricing-feature"><span className="pricing-check">{I.check}</span><span dangerouslySetInnerHTML={{__html: f}} /></div>))}</div>
               <button className="link-cta" onClick={() => window.dispatchEvent(new CustomEvent('openModal', { detail: plan.dialogKey }))}>See All Features &rarr;</button>
@@ -613,12 +1451,20 @@ function TrustSection() {
       <div className="container">
         <div className="trust-header sr">
           <div className="section-label">Privacy &amp; Trust</div>
-          <h2 className="section-title">Your Health Data Deserves Better</h2>
-          <p className="section-subtitle">We believe your most personal data should remain exactly that: personal. RichHealth.ai is built privacy-first from the ground up.</p>
+          <h2 className="section-title">The most personal data on your phone deserves the most serious architecture in the room.</h2>
+          <p className="section-subtitle">Most apps treat privacy as a settings page. We treat it as the spec the product was built against. Encryption, audit trails, granular consent, no advertising surveillance, no data sale, full export, one-tap deletion — every claim on this page maps to a line of code, an audit log, or a contract you can read.</p>
+        </div>
+        <div className="trust-promises sr">
+          <div className="trust-promise"><span>AES-256</span><small>at rest</small></div>
+          <div className="trust-promise"><span>TLS 1.3</span><small>in transit</small></div>
+          <div className="trust-promise"><span>Zero</span><small>data sale, ever</small></div>
+          <div className="trust-promise"><span>Per-record</span><small>family sharing</small></div>
+          <div className="trust-promise"><span>One-tap</span><small>permanent delete</small></div>
+          <div className="trust-promise"><span>DPDP · GDPR · PIPEDA</span><small>aligned</small></div>
         </div>
         <div className="trust-grid">
           {TRUST_ITEMS.map((t, i) => (
-            <div key={i} className="trust-card sr" style={{ transitionDelay: `${i * 0.15}s` }}>
+            <div key={i} className="trust-card sr" style={{ transitionDelay: `${i * 0.12}s` }}>
               <div className="trust-card-icon">
                 {t.img ? <img src={t.img} alt="" className="trust-card-img" /> : t.icon}
               </div>
@@ -627,6 +1473,9 @@ function TrustSection() {
               {t.cta && <button className="link-cta" onClick={() => window.dispatchEvent(new CustomEvent('openModal', { detail: t.dialogKey }))}>{t.cta} &rarr;</button>}
             </div>
           ))}
+        </div>
+        <div className="trust-footnote sr">
+          Want the long version? Read the <a href="#/legal/privacy-policy">full Privacy Policy</a>, the <a href="#/legal/terms">Terms of Service</a> and the <a href="#/legal/medical-disclaimer">Medical Disclaimer</a>. Each is the actual document, not a summary.
         </div>
       </div>
     </section>
@@ -680,29 +1529,72 @@ function CTASection() {
 }
 
 function Footer() {
+  const open = (key) => window.dispatchEvent(new CustomEvent('openModal', { detail: key }));
   return (
     <footer className="footer">
-      <div className="container footer-inner">
-        <div className="footer-left">
+      <div className="container footer-grid">
+        <div className="footer-brand">
           <div className="footer-logo">
             <img src={logoIcon} alt="" className="footer-logo-icon" />
             <span className="footer-logo-text">RichHealth<span style={{color:'var(--accent-primary)'}}>.ai</span></span>
           </div>
-          <div className="footer-tagline">Your health, intelligently Rich</div>
-        </div>
-        <div className="footer-center">
+          <div className="footer-tagline">Your health, intelligently Rich.</div>
           <div className="footer-stores">
             <a href="#contact" className="footer-store-btn">{I.playStore}<span>Google Play</span></a>
             <a href="#contact" className="footer-store-btn">{I.appStore}<span>App Store</span></a>
           </div>
-          <div style={{marginTop:8,fontSize:'.72rem',color:'var(--text-tertiary)'}}>&copy; {new Date().getFullYear()} RichHealth.ai · All rights reserved.</div>
+          <div className="footer-social">
+            <a href="https://x.com/richhealthai" className="footer-link" target="_blank" rel="noopener noreferrer" aria-label="X">{I.x}</a>
+            <a href="https://linkedin.com/company/richhealth-ai" className="footer-link" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">{I.linkedin}</a>
+            <a href="https://instagram.com/richhealth.ai" className="footer-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">{I.instagram}</a>
+            <a href="https://youtube.com/@richhealthai" className="footer-link" target="_blank" rel="noopener noreferrer" aria-label="YouTube">{I.youtube}</a>
+            <a href="mailto:hello@richhealth.app" className="footer-link" aria-label="Email">{I.mail}</a>
+          </div>
         </div>
-        <div className="footer-links">
-          <a href="https://x.com" className="footer-link" target="_blank" rel="noopener noreferrer" aria-label="X">{I.x}</a>
-          <a href="https://linkedin.com" className="footer-link" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">{I.linkedin}</a>
-          <a href="https://instagram.com" className="footer-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">{I.instagram}</a>
-          <a href="https://youtube.com" className="footer-link" target="_blank" rel="noopener noreferrer" aria-label="YouTube">{I.youtube}</a>
-          <a href="mailto:contact@richhealth.app" className="footer-link" aria-label="Email">{I.mail}</a>
+
+        <div className="footer-col">
+          <div className="footer-col-title">Product</div>
+          <a href="#platform">Platform</a>
+          <a href="#moat">Why RichHealth.ai</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#trust">Privacy &amp; Trust</a>
+          <a href="#roadmap">Roadmap</a>
+        </div>
+
+        <div className="footer-col">
+          <div className="footer-col-title">For You</div>
+          <a href="#contact">Download for Android</a>
+          <a href="#contact">iOS (coming soon)</a>
+          <button type="button" onClick={() => open('doctor-apply')}>Become a Doctor</button>
+          <a href="#careers">Careers</a>
+          <a href="mailto:hello@richhealth.app?subject=B2B%20Enquiry">Enterprise / B2B</a>
+          <a href="mailto:hello@richhealth.app?subject=Investor%20Enquiry">Press &amp; Investors</a>
+        </div>
+
+        <div className="footer-col">
+          <div className="footer-col-title">Legal</div>
+          <a href="#/legal/privacy-policy">Privacy Policy</a>
+          <a href="#/legal/terms">Terms of Service</a>
+          <a href="#/legal/cookies">Cookie Policy</a>
+          <a href="#/legal/refund">Refund &amp; Cancellation</a>
+          <a href="#/legal/medical-disclaimer">Medical Disclaimer</a>
+        </div>
+
+        <div className="footer-col">
+          <div className="footer-col-title">Contact</div>
+          <button type="button" onClick={() => open('contact-us')}>All contact channels</button>
+          <a href="mailto:support@richhealth.app">support@richhealth.app</a>
+          <a href="mailto:privacy@richhealth.app">privacy@richhealth.app</a>
+          <a href="mailto:billing@richhealth.app">billing@richhealth.app</a>
+        </div>
+      </div>
+
+      <div className="container footer-bottom">
+        <div className="footer-disclaimer">
+          <strong>Medical disclaimer:</strong> RichHealth.ai is an AI health intelligence platform. Richie’s output is informational and is not a substitute for professional medical advice, diagnosis, or treatment. Always consult a licensed clinician for medical decisions. In an emergency, call your local emergency number.
+        </div>
+        <div className="footer-copy">
+          &copy; {new Date().getFullYear()} RichHealth Technologies Inc. &middot; All rights reserved.
         </div>
       </div>
     </footer>
@@ -818,8 +1710,111 @@ function RichieChat({ onClose }) {
 /* =============================================================
    MAIN APP
    ============================================================= */
-function App() {
+/* =============================================================
+   LEGAL PAGE — full-screen, lengthy real legal text
+   ============================================================= */
+function LegalPage({ slug }) {
+  const data = LEGAL[slug];
+  if (!data) {
+    return (
+      <div className="page-shell">
+        <PageNav />
+        <main>
+          <div className="container" style={{padding:'120px 0',textAlign:'center'}}>
+            <h2 className="section-title">Document not found</h2>
+            <p className="section-subtitle">The legal document you tried to open does not exist.</p>
+            <a className="btn-primary" href="#/">Back to home</a>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const renderBody = (text) =>
+    text.split(/\n\n+/).map((para, i) => <p key={i}>{para}</p>);
+
+  return (
+    <div className="page-shell legal-page">
+      <PageNav />
+      <main>
+        <div className="container legal-container">
+          <a href="#/" className="apply-back">&larr; Back to home</a>
+          <header className="legal-header">
+            <div className="legal-eyebrow">{data.eyebrow}</div>
+            <h1 className="legal-title">{data.title}</h1>
+            {data.intro && <div className="legal-intro">{renderBody(data.intro)}</div>}
+          </header>
+
+          <div className="legal-grid">
+            <aside className="legal-toc">
+              <div className="legal-toc-title">On this page</div>
+              <ol className="legal-toc-list">
+                {data.sections.map((s, i) => (
+                  <li key={i}><a href={`#section-${i}`}>{s.h}</a></li>
+                ))}
+              </ol>
+              <div className="legal-toc-cta">
+                <a href="mailto:legal@richhealth.app">Questions about this document?</a>
+              </div>
+            </aside>
+
+            <article className="legal-body">
+              {data.sections.map((s, i) => (
+                <section key={i} id={`section-${i}`} className="legal-section">
+                  <h2 className="legal-h2">{s.h}</h2>
+                  <div className="legal-prose">{renderBody(s.body)}</div>
+                </section>
+              ))}
+
+              <section className="legal-section legal-related">
+                <h2 className="legal-h2">Related documents</h2>
+                <div className="legal-related-list">
+                  {Object.keys(LEGAL).filter(k => k !== slug).map(k => (
+                    <a key={k} href={`#/legal/${k}`} className="legal-related-link">
+                      {LEGAL[k].title} &rarr;
+                    </a>
+                  ))}
+                </div>
+              </section>
+            </article>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+function HomePage() {
   useScrollReveal();
+  return (
+    <div className="richhealth-app">
+      <Navbar />
+      <main>
+        <Hero />
+        <hr className="section-divider"/>
+        <ProblemSection />
+        <hr className="section-divider"/>
+        <PlatformSection />
+        <FourTabsSection />
+        <MoatSection />
+        <hr className="section-divider"/>
+        <MarketSection />
+        <PricingSection />
+        <hr className="section-divider"/>
+        <TrustSection />
+        <RoadmapSection />
+        <hr className="section-divider"/>
+        <CTASection />
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+function App() {
+  const page = usePage();
   const [modalKey, setModalKey] = useState(null);
   const [chatOpen, setChatOpen] = useState(false);
 
@@ -834,27 +1829,16 @@ function App() {
     };
   }, []);
 
+  let pageEl;
+  if (page.name === 'careers') pageEl = <CareersPage />;
+  else if (page.name === 'apply') pageEl = <ApplicationPage jobId={page.jobId} />;
+  else if (page.name === 'legal') pageEl = <LegalPage slug={page.slug} />;
+  else pageEl = <HomePage />;
+
   return (
-    <div className="richhealth-app">
-      <Navbar />
-      <main>
-        <Hero />
-        <hr className="section-divider"/>
-        <ProblemSection />
-        <hr className="section-divider"/>
-        <PlatformSection />
-        <MoatSection />
-        <hr className="section-divider"/>
-        <MarketSection />
-        <PricingSection />
-        <hr className="section-divider"/>
-        <TrustSection />
-        <RoadmapSection />
-        <hr className="section-divider"/>
-        <CTASection />
-      </main>
-      <Footer />
-      {!chatOpen && (
+    <>
+      {pageEl}
+      {page.name === 'home' && !chatOpen && (
         <button className="richie-fab" onClick={() => setChatOpen(true)} aria-label="Talk to Richie">
           <img src={logoIcon} alt="Richie" className="richie-fab-img" />
           <span className="richie-fab-label">Richie</span>
@@ -862,7 +1846,7 @@ function App() {
       )}
       {modalKey && <Modal contentKey={modalKey} onClose={() => setModalKey(null)} />}
       {chatOpen && <RichieChat onClose={() => setChatOpen(false)} />}
-    </div>
+    </>
   );
 }
 
