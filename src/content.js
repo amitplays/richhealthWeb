@@ -28,14 +28,14 @@ export const DIALOG_CONTENT = {
       'Each new connection strengthens the entire family\'s health safety net',
       'Selective sharing — you control exactly what Richie can see',
     ],
-    footer: 'No other health platform in the world offers family-connected AI. This is patent-worthy innovation that changes how families manage health.',
+    footer: 'No other health app connects a whole family the way RichHealth does.',
   },
   'multi-model': {
     title: 'Multi-Model AI Architecture',
-    subtitle: '15+ AI models working in concert',
-    body: 'Richie isn\'t dependent on a single AI provider. Our cascade fallback system orchestrates 15+ models — including Gemini, GPT-5.3, Claude 4.5, Llama, DeepSeek and Qwen — routing each health query to the model best suited to answer it. Pro and Ultra tiers unlock the AI Council mode, where multiple frontier models analyze your data independently and synthesize a consensus response.',
+    subtitle: 'Multiple frontier models working in concert',
+    body: 'Richie isn\'t dependent on a single AI provider. Our cascade fallback system orchestrates multiple models — including Gemini, GPT-5.3, Claude 4.5, Llama, DeepSeek and Qwen — routing each health query to the model best suited to answer it. Pro and Ultra tiers unlock the AI Council mode, where multiple frontier models analyze your data independently and synthesize a consensus response.',
     highlights: [
-      '99.9% uptime through automatic model failover',
+      'Resilient by design through automatic model failover',
       'No vendor lock-in — always the best model for the job',
       'AI Council (Pro/Ultra): Gemini + GPT-5.3 + Claude 4.5 reach consensus',
       'Specialized routing: clinical queries, dietary advice, mental health',
@@ -69,13 +69,13 @@ export const DIALOG_CONTENT = {
     footer: 'In a country where air quality directly impacts hundreds of millions, this feature alone is a market maker.',
   },
 
-  /* ---- India-First Proprietary AI ---- */
+  /* ---- India-First AI ---- */
   'india-first': {
-    title: 'India-First Proprietary AI',
+    title: 'India-First AI',
     subtitle: 'The only health AI built from the ground up for Indian healthcare',
-    body: 'Richie isn\'t a Western health AI with an Indian skin. It\'s a proprietary model trained on Indian medical terminology, doctor-patient communication styles, regional disease patterns, local medication brands, and dietary contexts that no global AI understands. When a doctor in Delhi writes "Tab Crocin 650 TDS," Richie doesn\'t just parse it — it understands the clinical intent, the dosage pattern, and the cultural context behind it.',
+    body: 'Richie isn\'t a Western health AI with an Indian skin. It\'s an India-tuned AI built around Indian medical terminology, doctor-patient communication styles, regional disease patterns, local medication brands, and dietary contexts that no global AI understands. When a doctor in Delhi writes "Tab Crocin 650 TDS," Richie doesn\'t just parse it — it understands the clinical intent, the dosage pattern, and the cultural context behind it.',
     highlights: [
-      'Trained on Indian prescription language, abbreviations, and doctor handwriting patterns',
+      'Tuned for Indian prescription language, abbreviations, and doctor handwriting',
       'Understands Indian medication brands — Crocin, Dolo-650, Shelcal, Thyronorm — not just generic names',
       'Regional disease awareness: dengue in Mumbai, TB in UP, thyroid disorders in coastal regions',
       'Dietary intelligence: dal-chawal nutrition profiles, ghee consumption context, regional food habits',
@@ -214,7 +214,7 @@ export const DIALOG_CONTENT = {
   'market': {
     title: 'Why This Matters, Right Now',
     subtitle: 'The gap that RichHealth.ai fills',
-    body: 'India has 1.4 billion people, most on Android, most without access to quality healthcare. The digital health market is projected to reach $9.9 billion by 2029. But the real opportunity isn\'t just market size — it\'s the gap. No AI health platform is built for the Indian context.',
+    body: 'India has 1.4 billion people, most on Android, most without access to quality healthcare. India digital health is projected to reach $107 billion by 2033 (Grand View Research). But the real opportunity isn\'t just market size — it\'s the gap. No AI health platform is built for the Indian context.',
     highlights: [
       'No health AI understands Indian dietary patterns, regional diseases, or local medications',
       'No family-connected health intelligence exists anywhere in the world',
