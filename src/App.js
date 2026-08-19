@@ -16,9 +16,18 @@ import scrServicesLong from './assets/screens/services_hub_long.jpg';
 import scrRichieDependent from './assets/screens/richie_dependent_picker.jpg';
 import scrBiometric from './assets/screens/biometric_lock.jpg';
 import scrHealthHubPeriod from './assets/screens/health_hub_period.jpg';
-import scrCheckin from './assets/screens/checkin_history.jpg';
-import scrNutriResult from './assets/screens/nutricheck_result.jpg';
-import scrHealthAnalysisLong from './assets/screens/health_analysis_long.jpg';
+
+/* Real iOS device screenshots (iPhone, Liquid Glass) */
+import iosRichieHome from './assets/screens/ios/ios_richie_home.jpg';
+import iosFamilyChat from './assets/screens/ios/ios_family_chat.jpg';
+import iosModelPicker from './assets/screens/ios/ios_model_picker.jpg';
+import iosMeasurementsWatch from './assets/screens/ios/ios_measurements_watch.jpg';
+import iosSymptoms from './assets/screens/ios/ios_symptoms.jpg';
+import iosMedications from './assets/screens/ios/ios_medications.jpg';
+import iosReports from './assets/screens/ios/ios_reports.jpg';
+import iosFamily from './assets/screens/ios/ios_family.jpg';
+import iosCheckin from './assets/screens/ios/ios_checkin.jpg';
+import iosProfile from './assets/screens/ios/ios_profile.jpg';
 
 /* =============================================================
    SVG LINE ICONS
@@ -195,21 +204,23 @@ const PROBLEMS = [
 ];
 
 const FEATURES = [
-  { id: 'ai-chat', title: 'Meet Richie: AI That Actually Knows You', body: 'Not a generic chatbot. Richie reads your complete health profile \u2014 medications, symptoms, measurements, medical reports, family history, period logs, daily check-ins and your local air quality \u2014 before saying a word. Built to understand Indian health context: regional diseases like dengue and TB, local medications, dietary patterns, and Ayurvedic concepts alongside modern medicine. A multi-model cascade with automatic fallback keeps Richie reliable, and it remembers your history across conversations.', badges: ['India-First Health AI', 'Multi-Model Cascade', 'Auto-Fallback', 'Conversation Memory'] },
+  { id: 'ai-chat', title: 'Meet Richie: AI That Actually Knows You', body: 'Not a generic chatbot. Before Richie says a word, it opens your record \u2014 medications, symptoms, measurements, lab reports, family history, period logs, check-ins and your local air quality. Every suggestion shows its work: tap \u201cwhy Richie suggested this\u201d and see the exact readings behind it. Pick the model you prefer \u2014 Auto, Gemini, Mistral, DeepSeek, Llama, or premium GPT-5.3 and Claude 4.5 on Pro \u2014 with automatic fallback so an answer always arrives. Built for Indian health context, and it remembers your history across conversations.', badges: ['Grounded In Your Data', 'Choose Your Model', 'Auto-Fallback', 'Remembers You'] },
+  { id: 'apple-watch', title: 'Your Apple Watch Data, Finally Understood', highlight: 'HEART RATE \u00b7 SLEEP \u00b7 SpO\u2082 \u00b7 ACTIVITY \u00b7 TEMPERATURE', body: 'Your watch collects thousands of numbers a day \u2014 heart rate, resting HR, oxygen, sleep, activity, temperature \u2014 that mostly die inside a fitness app. RichHealth syncs them (Apple Health on iPhone, Google Health Connect on Android) and lets Richie read them alongside your labs, medications, symptoms and family history. So a variable heart rate isn\u2019t just a chart \u2014 it\u2019s a question Richie can actually answer, in the context of you.', list: ['Apple Watch & HealthKit sync (iPhone)', 'Google Fit / Health Connect (Android)', 'Vitals fused with labs, meds & symptoms', 'Trends read as meaning, not just graphs'] },
   { id: 'family-network', title: 'The World\u2019s First Family-Connected Health AI', highlight: 'ONE CONNECTED RECORD FOR YOUR WHOLE FAMILY', body: 'Connect your living family members. Each member\u2019s relevant health data flows securely to Richie, giving it hereditary context no other platform can match. When you ask \u201CAm I at risk for diabetes?\u201D, Richie already knows your mother has Type 2 and your BMI has been trending upward.', list: ['Relationship requests & approvals', 'Selective data sharing (AI-only)', 'Hereditary risk detection', 'Shared family health timeline'] },
-  { id: 'dependents', title: 'Dependents \u2014 One Account, Whole Family', highlight: 'CHILDREN \u00B7 AGEING PARENTS \u00B7 DECEASED RELATIVES', body: 'In Indian households, one person manages health for everyone. RichHealth.ai is built for that reality. Add a child, an ageing parent, or a deceased relative whose hereditary data still matters, and Richie maintains a fully separate health graph for each \u2014 with caregiver-aware AI that always knows whose body it\u2019s reasoning about.', list: ['Paediatric reference ranges for children', 'Polypharmacy & fall-risk checks for elders', 'Hereditary conditions preserved from deceased relatives', '"Graduate" a child profile to their own account'] },
+  { id: 'dependents', title: 'Dependents \u2014 From a Newborn\u2019s First Day to a Parent\u2019s Last Years', highlight: 'NEWBORNS \u00B7 CHILDREN \u00B7 AGEING PARENTS \u00B7 DECEASED RELATIVES', body: 'In Indian households, one person manages health for everyone. RichHealth is built for exactly that. Add your newborn and track growth on WHO percentile charts with a personalised immunisation calendar and milestone check-ins. Add an ageing parent and get polypharmacy and fall-risk awareness. Add a deceased relative whose hereditary data still matters. Richie keeps a fully separate, caregiver-aware health graph for each \u2014 always knowing whose body it\u2019s reasoning about.', list: ['Newborns: WHO growth percentiles + vaccine reminders', 'Children: paediatric reference ranges & milestones', 'Elders: polypharmacy & fall-risk awareness', '\u201CGraduate\u201D a child\u2019s profile into their own account'] },
   { id: 'genetics', title: 'Hereditary Risk Engine', body: 'You enter what you know \u2014 parents\u2019 conditions, grandparents\u2019 diagnoses, siblings\u2019 history, hereditary patterns from deceased relatives. Richie cross-references that genetic context against your own labs, vitals, symptoms and lifestyle to produce a real, grounded hereditary risk profile. Not horoscopes. A risk map specific to your bloodline.', insight: 'South Asian populations carry distinct genetic predispositions for diabetes, cardiac disease, PCOS and thyroid disorders. Richie weights for them. Western health AIs do not.', badges: ['Family History Graph', 'South Asian Risk Weighting', 'Reproductive Hereditary Signals'] },
   { id: 'period', title: 'Period & Cycle Intelligence', highlight: 'INTEGRATED, PRIVATE, INDIA-AWARE', body: 'Most period apps live in a silo \u2014 they predict the next cycle and stop there. Richie cross-references every period log with your thyroid panel, your iron levels, your stress, your medications, and your family\u2019s hereditary patterns. PCOS, endometriosis, early menopause \u2014 flagged when the data actually supports it.', list: ['Flow intensity, pain level, duration logging', 'Cycle prediction grounded in your real logs', 'PCOS / endometriosis pattern detection', 'Available for you and any female dependent'] },
-  { id: 'council', title: 'AI Council \u2014 Three Frontier Models. One Consensus.', highlight: 'PRO & ULTRA EXCLUSIVE', body: 'On Pro and Ultra, Richie shifts from a single model to a council of frontier AIs \u2014 Gemini, GPT-5.3 and Claude 4.5 \u2014 each analysing your data independently, then reconciling findings into one synthesised response. The equivalent of a second, third and fourth opinion, automatically, on every important question.', badges: ['Gemini', 'GPT-5.3', 'Claude 4.5', 'Consensus Synthesis'] },
+  { id: 'council', title: 'AI Council \u2014 A Panel of Perspectives, Reconciled', highlight: 'PRO & ULTRA', body: 'On Pro and Ultra, an important question isn\u2019t answered once. Richie runs a council \u2014 several expert perspectives (a cardiometabolic lens, a behavioural-and-adherence lens, a holistic lifestyle lens) reason over your data in parallel, then Richie reconciles them into a single, grounded takeaway. You see both the individual takes and the synthesis. It\u2019s a second, third and fourth opinion on your own health data \u2014 automatically.', badges: ['Multiple Perspectives', 'Reconciled by Richie', 'You See The Reasoning', 'Premium Models'] },
   { id: 'symptoms', title: 'Your Body\u2019s Black Box Recorder', body: 'Log symptoms with severity, duration, and notes. Track vitals \u2014 blood pressure, blood sugar, weight, heart rate, SpO\u2082, temperature \u2014 over time. Richie cross-references every entry against your medications, AQI exposure, cycle and family history to find patterns invisible to the human eye.', insight: 'A user who logs daily for 90 days gives Richie more personal health context than exists in their entire medical record history.' },
   { id: 'checkin', title: 'Daily & Weekly Health Check-Ins', body: 'A guided two-minute flow asks the questions a thoughtful doctor would \u2014 energy, sleep, mood, pain, hydration, exercise, bowel health, stress. Optional fingerprint or face unlock keeps the data private on shared devices. The result is a longitudinal record Richie correlates against everything else.', badges: ['Adaptive Questions', 'Weekly on Pro', 'Every 3 Days on Ultra', 'Biometric Lock'] },
   { id: 'reports', title: 'Upload Any Lab. Understand It, and Track Every Number Over Years.', body: 'Upload any medical report \u2014 blood work, imaging, lab results, discharge summaries \u2014 and Richie extracts key findings, flags abnormal values, and cross-references everything against your health profile, your medications and your family\u2019s hereditary conditions.', badges: ['AI Analysis', 'Biomarker Trends Over Time', 'Ultra: Doctor Review'] },
   { id: 'health-hub', title: 'Health Hub \u2014 Your Mission Control', body: 'The second tab of the app \u2014 the single screen where every vital, every report, every medication, every symptom, every cycle log and every dependent\u2019s data converges. Designed to feel less like a health app and more like the dashboard of a high-end car: dense, calm, in control.', list: ['Unified vitals at a glance', 'One-tap entry to every tool', 'Trend lines & anomaly markers', 'Tier-tuned quick actions'] },
   { id: 'aqi', title: 'The Air You Breathe Is Part of Your Health Record', body: 'RichHealth.ai passively tracks your location\u2019s Air Quality Index, building a complete environmental exposure profile. Richie correlates your headaches with pollution spikes and generates long-term exposure risk assessments.', badges: ['30-Day Analytics', 'Trend Detection', 'Health Impact Scoring'], list: ['AQI (US & China standards)', 'PM2.5, PM10, O\u2083', 'Temperature & Humidity'] },
   { id: 'health-news', title: 'Health News That Matters to Where You Live', body: 'Richie curates health news based on your location, health profile, and family conditions. When dengue outbreaks hit your city, you\u2019re the first to know. When new research emerges about a condition in your family, Richie brings it to you. No noise. No clickbait.', badges: ['Location-Aware', 'Condition-Matched', 'Outbreak Alerts', 'Daily Digest'] },
-  { id: 'nutricheck', title: 'NutriCheck \u2014 Should I Eat This? Ask Richie.', body: 'Type any food item and get an instant, personalised recommendation. NutriCheck analyses food against YOUR health profile \u2014 conditions, medications, allergies, blood work and goals \u2014 with deep understanding of Indian cuisine, regional staples and dietary patterns.', badges: ['Foods to Eat', 'Foods to Avoid', 'Meal Plan Ideas', 'Indian Cuisine Native'] },
-  { id: 'medications', title: 'Never Miss a Dose. Never Miss an Interaction.', body: 'Track every medication with full details, including Indian brands and generics \u2014 Crocin, Dolo-650, Shelcal, Thyronorm. Richie uses your complete medication list when analysing symptoms, evaluating food interactions, and providing health recommendations. Log every dose, track adherence over time, and monitor a dependent too.' },
-  { id: 'doctor', title: 'A Bridge Between You and Your Doctor', body: 'The Doctor Portal gives physicians a comprehensive view: medical history, medications, symptoms, Richie\u2019s report analyses, AQI exposure, and health alerts \u2014 all in one place. Data-rich, continuous care.', badges: ['Patient health status', 'Comprehensive profiles', 'Report verification', 'Risk scoring'] },
+  { id: 'nutricheck', title: 'NutriCheck \u2014 Should I Eat This? Ask Richie.', body: 'Type a dish or scan a packaged-food barcode and get an instant, personalised verdict. NutriCheck weighs the food against YOUR profile \u2014 conditions, medications, allergies, blood work and goals \u2014 with deep understanding of Indian cuisine and regional staples. Barcode scanning reads real ingredient and nutrition data from Open Food Facts, so \u201cis this okay for me?\u201d has an honest answer in seconds.', badges: ['Scan Any Barcode', 'Foods to Eat / Avoid', 'Allergy & Med Aware', 'Indian Cuisine Native'] },
+  { id: 'medications', title: 'Never Miss a Dose. Understand Every Medicine.', body: 'Track every medication \u2014 including Indian brands and generics like Crocin, Dolo-650, Shelcal and Thyronorm. Smart reminders nudge you at the right time; log each dose as Taken, Missed or Snoozed and watch your adherence build. Richie reads your full medication list when analysing symptoms and food, and surfaces safety flags \u2014 dosage, warnings and recalls \u2014 drawn from public FDA labels and India\u2019s national Drug Registry. Manage a dependent\u2019s medicines from the same place.', badges: ['Dose Reminders', 'Adherence Tracking', 'Brand \u2192 Generic', 'Public Safety Flags'] },
+  { id: 'doctor', title: 'A Bridge Between You and Your Doctor', body: 'Connect a doctor and share exactly what you choose. The Doctor Portal gives them a comprehensive, consented view: medical history, medications, symptoms, your uploaded reports, AQI exposure and health alerts \u2014 all in one place, so a 10-minute visit starts from your whole story instead of a blank page.', badges: ['Consent-Based Sharing', 'Comprehensive Profiles', 'Health Alerts', 'Risk Signals'] },
+  { id: 'open-data', title: 'Smarter Every Release \u2014 On Open Medical Data', highlight: 'FREE, TRUSTED, FOR EVERYONE', body: 'RichHealth gets sharper without you doing a thing. We wire in trusted public data: WHO child-growth standards for percentile tracking, openFDA and India\u2019s Drug Registry for medicine safety, Open Food Facts for barcodes, MedlinePlus for plain-language explanations of every lab and diagnosis, and OpenAQ for street-level air quality. When Richie explains a result or flags a risk, it can stand on a real, citable source.', badges: ['WHO Growth Standards', 'FDA / Drug Registry', 'MedlinePlus Explanations', 'Research-Backed'] },
   { id: 'podcasts', title: 'Health Knowledge, Curated & Delivered', body: 'A curated library of health podcasts with full playback controls, bookmarking and progress persistence. Ultra users can request custom episodes on the topics that matter to their family.' },
   { id: 'workout', title: 'Complete Fitness Tracking', body: 'Browse exercises, build custom workouts, and log history. Richie factors exercise data into health recommendations \u2014 suggesting rest, adjusting calories, correlating patterns with symptoms and cycle.' },
 ];
@@ -218,38 +229,38 @@ const MOAT = [
   { icon: I.brain, title: 'India-First AI', body: 'Most "global" health AIs are trained on American charts and translated for everyone else. Richie is the inverse \u2014 built on Indian prescriptions, brand names like Crocin and Dolo-650, regional disease patterns, doctor handwriting and dietary context. Then engineered to scale to the rest of the world from that foundation.', dialogKey: 'india-first' },
   { icon: I.shield, title: 'Data Compounds. Lock-In Doesn\'t.', body: 'Every report, symptom, vital, period log and check-in deepens Richie\'s understanding of you. After 90 days, no other app can match the context. After a year, the value is irreplaceable \u2014 and you can still export or delete every byte of it. The moat is genuine usefulness, not friction.', dialogKey: 'data-compounding' },
   { icon: I.network, title: 'Family Network Effect', body: 'One person logs. The whole family gets smarter. A family of four produces roughly 16\u00d7 the cross-referential signal of one isolated user \u2014 hereditary risk, shared environment, caregiver oversight. No other health app connects families like this.', dialogKey: 'family-network' },
-  { icon: I.layers, title: 'AI Council, Not One Model', body: 'On Pro and Ultra, Richie runs as a council of frontier models \u2014 Gemini, GPT-5.3 and Claude 4.5 \u2014 each reading your data independently before the system synthesises a single grounded answer. Cascading fallback keeps the council resilient even when a model is down.', dialogKey: 'multi-model' },
-  { icon: I.triangle, title: 'Doctor-Verified, Not Doctor-Replaced', body: 'AI on its own is a liability in healthcare. Licensed physicians review Richie\'s analyses on Ultra, train the system with structured feedback, and stand behind the most important findings. Speed of AI, judgment of medicine \u2014 neither, alone, is enough.', dialogKey: 'doctor-triangle' },
+  { icon: I.layers, title: 'A Council, Not One Answer', body: 'On Pro and Ultra, important questions are answered by a panel of expert perspectives \u2014 reasoning over your data in parallel, then reconciled by Richie into one grounded takeaway you can actually see the working behind. Premium models and automatic fallback keep it resilient even when one is down.', dialogKey: 'multi-model' },
+  { icon: I.triangle, title: 'Doctor-Ready, Not Doctor-Replaced', body: 'AI on its own is a liability in healthcare. RichHealth keeps a clinician in the loop: connect your doctor and share exactly what you choose, so they start from your whole story. Richie helps you understand and prepare \u2014 it never pretends to be the physician.', dialogKey: 'doctor-triangle' },
   { icon: I.wind, title: 'Environment as a Health Variable', body: 'Your AQI exposure isn\'t lifestyle metadata \u2014 it\'s a clinical input. Richie correlates pollution spikes with your symptoms, weights long-term exposure into risk scoring, and surfaces local outbreak alerts. In a country where air kills 1.67M people a year, this isn\'t a feature. It\'s a category.', dialogKey: 'environmental' },
 ];
 
 const STATS = [
   { value: 107, suffix: 'B', prefix: '$', label: 'India digital health market by 2033, ~25% CAGR (Grand View Research)', decimals: 0 },
-  { value: 86.4, suffix: 'B', prefix: '$', label: 'Global mHealth apps market by 2030 (Grand View Research)', decimals: 1 },
-  { value: 338, suffix: 'M', prefix: '', label: 'eSanjeevani teleconsultations in India by Jan 2025 (MoHFW)', decimals: 0 },
-  { value: 900, suffix: 'M', prefix: '', label: 'ABHA digital health IDs created under India ABDM (2026)', decimals: 0 },
-  { value: 1.67, suffix: 'M', prefix: '', label: 'Annual deaths linked to air pollution in India (Lancet, 2019)', decimals: 2 },
-  { value: 50.6, suffix: '', prefix: '', label: 'India average PM2.5, about 10x the WHO guideline (IQAir 2024)', decimals: 1 },
+  { value: 101, suffix: 'M', prefix: '', label: 'Indians living with diabetes; 136M more pre-diabetic (ICMR-INDIAB, Lancet 2023)', decimals: 0 },
+  { value: 1.5, suffix: 'M', prefix: '', label: 'Annual deaths in India linked to PM2.5 air pollution (Lancet Planetary Health, 2024)', decimals: 1 },
+  { value: 1, suffix: 'B+', prefix: '', label: 'Health records linked to ABHA under India’s digital health mission, ABDM (2026)', decimals: 0 },
+  { value: 50, suffix: '%', prefix: '', label: 'Chronic patients who don’t take medication as prescribed (WHO)', decimals: 0 },
+  { value: 20, suffix: '%', prefix: '', label: 'Share of India aged 60+ by 2050 — outnumbering children (UNFPA, 2023)', decimals: 0 },
 ];
 
 const PRICING = [
-  { name: 'Plus', originalPrice: '\u20B91,249', price: '\u20B9999', period: '/3 months', perMonth: '\u20B9333/mo equivalent', usd: '~$12 / 3 mo', discount: '20% OFF', popular: false, dialogKey: 'pricing-plus', features: ['<b>5</b> medical report uploads / mo', '<b>5</b> AI health analyses / mo', '<b>10</b> NutriCheck meals / mo', 'Richie AI chat (standard models, 25 msgs/session)', '<b>1</b> dependent profile', 'Period & cycle tracker', 'Full symptom & vitals tracking', 'AQI monitoring \u00B7 Medication tracking'] },
-  { name: 'Pro', originalPrice: '\u20B93,599', price: '\u20B92,499', period: '/3 months', perMonth: '\u20B9833/mo equivalent', usd: '~$30 / 3 mo', discount: '30% OFF', popular: true, dialogKey: 'pricing-pro', features: ['<b>Everything in Plus</b>', '<b>AI Council</b> \u2014 Gemini \u00B7 GPT-5.3 \u00B7 Claude 4.5', '<b>10</b> reports & <b>10</b> health analyses / mo', '<b>20</b> NutriCheck meals / mo', 'Premium AI models, 50 msgs/session', 'Up to <b>2</b> dependents', 'Hereditary risk engine', 'Weekly health check-ins', 'Doctor connections & sharing'] },
-  { name: 'Ultra', originalPrice: '\u20B99,999', price: '\u20B94,999', period: '/12 months', perMonth: '\u20B9417/mo equivalent', usd: '~$60 / year', discount: '50% OFF', popular: false, dialogKey: 'pricing-ultra', features: ['<b>Everything in Pro</b>', '<b>Unlimited</b> AI report analyses', '<b>Unlimited</b> NutriCheck meals', 'All premium models, 100 msgs/session', 'Up to <b>5</b> dependents & <b>5</b> family members', 'Doctor review of AI analyses', 'Check-ins every 3 days', 'Custom podcast requests', 'White-glove onboarding'] },
+  { name: 'Plus', originalPrice: '\u20B91,249', price: '\u20B9999', period: '/3 months', perMonth: '\u20B9333/mo equivalent', usd: '~$12 / 3 mo', discount: '20% OFF', popular: false, dialogKey: 'pricing-plus', features: ['<b>5</b> medical report uploads / mo', '<b>5</b> AI health analyses / mo', '<b>10</b> NutriCheck meals / mo', 'Richie AI chat (standard models, 25 msgs/session)', '<b>1</b> dependent profile', 'Period & cycle tracker', 'Full symptom & vitals tracking', 'AQI monitoring \u00B7 Medication reminders'] },
+  { name: 'Pro', originalPrice: '\u20B93,599', price: '\u20B92,499', period: '/3 months', perMonth: '\u20B9833/mo equivalent', usd: '~$30 / 3 mo', discount: '30% OFF', popular: true, dialogKey: 'pricing-pro', features: ['<b>Everything in Plus</b>', '<b>AI Council</b> \u2014 multiple perspectives, reconciled', '<b>10</b> reports & <b>10</b> health analyses / mo', '<b>20</b> NutriCheck meals / mo', 'Premium AI models, 50 msgs/session', 'Up to <b>2</b> dependents', 'Hereditary risk engine', 'Weekly health check-ins', 'Doctor connections & sharing'] },
+  { name: 'Ultra', originalPrice: '\u20B99,999', price: '\u20B94,999', period: '/12 months', perMonth: '\u20B9417/mo equivalent', usd: '~$60 / year', discount: '50% OFF', popular: false, dialogKey: 'pricing-ultra', features: ['<b>Everything in Pro</b>', '<b>Unlimited</b> AI report analyses', '<b>Unlimited</b> NutriCheck meals', 'All premium models, 100 msgs/session', 'Up to <b>5</b> dependents & <b>5</b> family members', 'Priority Doctor Portal sharing', 'Check-ins every 3 days', 'Newborn growth & vaccine tracking', 'White-glove onboarding'] },
 ];
 
 const TRUST_ITEMS = [
   { icon: I.lock, img: null, title: 'Encrypted on every layer that touches your body.', body: 'TLS 1.3 in transit. AES-256 at rest. Reports stored in segregated, access-controlled object storage with request-level audit logs. We assume breaches are not impossible \u2014 and design like a security team that has lived through one.', cta: 'Read the full security model', dialogKey: 'privacy' },
-  { icon: null, img: icMentalHealth, title: 'Mental health conversations leave no shadow.', body: 'Wellness Chat with Richie is treated differently from everything else. No model training. No behavioural profiling. Retention only as long as you choose. A safe, judgment-free space \u2014 and one that respects how mental health is actually talked about.', cta: 'What makes Wellness Chat private', dialogKey: 'mental-health' },
-  { icon: I.shield, img: null, title: 'Your data is portable. Your account is closeable. One tap.', body: 'Export every report, vital, period log, medication and conversation as structured files at any time. Permanently delete your account from inside the app \u2014 we keep no shadow copies. Granular per-record sharing controls for family, dependents and doctors.', cta: 'How sovereignty works in the app', dialogKey: 'data-control' },
+  { icon: null, img: icMentalHealth, title: 'What you tell Richie stays yours.', body: 'You control Richie\u2019s memory and whether your data helps improve the model \u2014 both are switches in the app, and you can turn them off. Sensitive conversations aren\u2019t mined for advertising or behavioural profiling. Private by default, transparent by design.', cta: 'How your AI settings work', dialogKey: 'mental-health' },
+  { icon: I.shield, img: null, title: 'Your account is yours to close. One tap.', body: 'Delete your account and wipe your personal identifiers from inside the app, instantly. Ask us to export or fully erase your records and we honour it. Granular, per-record sharing controls decide exactly what Richie, your family, dependents or a doctor can see.', cta: 'How data control works', dialogKey: 'data-control' },
   { icon: I.eyeOff, img: null, title: 'We do not sell, share, or monetise your health data. Ever.', body: 'No advertising network. No data broker. No insurer pre-feed. No employer wellness scoring. Selling personal health data is the precise opposite of why this product exists \u2014 and the business model is built around making sure we never need to.', cta: 'See what we never do with your data', dialogKey: 'privacy' },
 ];
 
 const ROADMAP = [
-  { phase: 'Completed', icon: I.checkCircle, dotActive: true, items: ['Richie AI chat with multi-model architecture', 'Family health network', 'Symptom & measurement tracking', 'Medical report AI analyzer', 'Doctor portal & connection', 'AQI environmental monitoring', 'NutriCheck food analysis', 'Medication management', 'Health news feed', 'Health podcasts', 'Pro subscription with Razorpay'] },
-  { phase: 'Next Quarter', icon: I.clock, dotActive: false, items: ['Google Fit / Samsung Health integration', 'Apple Watch + Wear OS data sync', 'Push notification health alerts', 'iOS app launch'] },
-  { phase: '6 Months', icon: I.compass, dotActive: false, items: ['Insurance company API partnerships', 'Pharmacy integration', 'Lab test booking with auto-import', 'Regional language support'] },
-  { phase: '12 Months', icon: I.rocket, dotActive: false, items: ['Predictive Health Engine: anticipate health risks before they happen', 'Ayushman Bharat integration', 'Hospital EHR integration', 'Mental health module', 'Pregnancy & child tracker', 'White-label B2B platform'] },
+  { phase: 'Shipped', icon: I.checkCircle, dotActive: true, items: ['Native iPhone app (iOS 26 Liquid Glass)', 'Apple Watch app', 'Native Android app', 'Apple Health & Google Health Connect sync', 'Richie AI chat — grounded, with model picker', 'Family network + shared Pro across the family', 'Multimodal Health Check-Ins', 'Vision-read medical reports', 'NutriCheck · AQI · Doctor Portal', 'Medication reminders & adherence', 'StoreKit, Google Play & Razorpay billing'] },
+  { phase: 'Now Rolling Out', icon: I.clock, dotActive: true, items: ['Barcode food scanning (Open Food Facts)', 'Medicine safety flags (openFDA + India Drug Registry)', 'Newborn growth percentiles (WHO) + vaccine calendar', 'Plain-language lab & diagnosis explainers (MedlinePlus)', 'Research-cited answers (PubMed / OpenAlex)'] },
+  { phase: 'Next', icon: I.compass, dotActive: false, items: ['Regional language support', 'Lab-test booking with auto-import', 'Pharmacy integration', 'Deeper wearable metrics — sleep stages, HRV', 'Local outbreak alerts by district (IDSP)'] },
+  { phase: 'Horizon', icon: I.rocket, dotActive: false, items: ['Predictive Health Engine: early risk forecasts', 'ABDM / Ayushman Bharat interoperability', 'Hospital EHR integration (FHIR)', 'Pregnancy & child-development tracker', 'White-label B2B platform'] },
 ];
 
 /* =============================================================
@@ -265,10 +276,12 @@ function MockupChat() {
         <div className="chat-typing"><span/><span/><span/></div>
       </div>
       <div className="model-chips">
-        <span className="model-chip active">Gemini 2.0 Flash</span>
-        <span className="model-chip">Llama 3.3 70B</span>
-        <span className="model-chip">DeepSeek V3</span>
-        <span className="model-chip">Qwen 3</span>
+        <span className="model-chip active">Auto</span>
+        <span className="model-chip">Gemini</span>
+        <span className="model-chip">DeepSeek R1</span>
+        <span className="model-chip">Llama 3.3</span>
+        <span className="model-chip">GPT-5.3 · Pro</span>
+        <span className="model-chip">Claude 4.5 · Pro</span>
       </div>
     </div>
   );
@@ -539,17 +552,22 @@ function MockupHealthHub() {
 /* Each slide can be { src, tall } — tall slides auto-scroll while active.
    Curated, deduplicated set covering: Services, Health Hub, Richie council, Period, NutriCheck, Health Analysis, Biometric. */
 const PHONE_SLIDES = [
-  { src: scrServicesLong, tall: true },         // Services hub — tall, auto-scroll
-  { src: scrHealthHubPeriod, tall: false },     // Health Hub
-  { src: scrRichieDependent, tall: false },     // Richie council w/ dependent picker
-  { src: scrHealthAnalysisLong, tall: true },   // Health Analysis donut + analysis — tall
-  { src: scrNutriResult, tall: false },         // NutriCheck verdict
-  { src: scrCheckin, tall: false },             // Check-In history
-  { src: scrBiometric, tall: false },           // Biometric lock
+  { src: iosRichieHome, tall: false },          // Richie home — grounded suggestions ("why Richie suggested this")
+  { src: iosMeasurementsWatch, tall: false },   // Measurements — Apple Watch data fused with manual
+  { src: iosCheckin, tall: false },             // Multimodal Health Check-In watchlist
+  { src: iosFamily, tall: false },              // Family — connections + Covered/Pro
+  { src: iosFamilyChat, tall: false },          // Family health chat picker (You / papa / Vineet)
+  { src: iosModelPicker, tall: false },         // Choose your model
+  { src: iosMedications, tall: false },         // Medications
+  { src: iosSymptoms, tall: false },            // Symptoms with severity
+  { src: iosReports, tall: false },             // Medical reports — vision-read
+  { src: iosProfile, tall: false },             // Profile — AI & privacy settings
 ];
 
 const VISUAL_MAP = {
   'ai-chat': MockupChat,
+  'apple-watch': MockupHealthHub,
+  'open-data': MockupNews,
   'family-network': MockupNetwork,
   dependents: MockupDependents,
   genetics: MockupGenetics,
@@ -625,7 +643,7 @@ function Navbar() {
           <a href="#trust" onClick={close}>Privacy</a>
           <a href="#/careers" onClick={close}>Careers</a>
         </div>
-        <div className={`hamburger ${menuOpen ? 'open' : ''}`} onClick={() => setMenuOpen(!menuOpen)} role="button" aria-label="Toggle menu" tabIndex={0}><span/><span/><span/></div>
+        <div className={`hamburger ${menuOpen ? 'open' : ''}`} onClick={() => setMenuOpen(!menuOpen)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMenuOpen(!menuOpen); } }} role="button" aria-label="Toggle menu" aria-expanded={menuOpen} tabIndex={0}><span/><span/><span/></div>
       </div>
     </nav>
   );
@@ -665,16 +683,17 @@ function Hero() {
             </span>
           </h1>
 
-          <p className="hero-sub">Meet <span className="hero-richie-highlight">Richie</span> — your family's personal health AI. Reads your reports. Tracks symptoms, vitals, periods and check-ins. Manages dependents (children, ageing parents) under one account. Connects family hereditary signals into a single risk map. Powered by an AI Council of Gemini, GPT-5.3, Claude 4.5 — and a resilient multi-model fallback behind them.</p>
+          <p className="hero-sub">Meet <span className="hero-richie-highlight">Richie</span> — your family's personal health AI. It reads your lab reports, turns your Apple Watch vitals into meaning, tracks symptoms, medications, periods and check-ins, and manages dependents — children, ageing parents, even a newborn — under one account. Every answer starts from your own record. Native on <b>iPhone, Apple Watch and Android</b>.</p>
 
           <div className="store-buttons" style={{ animation: 'fadeInUp .7s var(--ease-spring) 1.1s both' }}>
             <a href="#contact" className="store-btn">{I.playStore}<span className="store-btn-text"><small>GET IT ON</small><span>Google Play</span></span></a>
-            <a href="#contact" className="store-btn">{I.appStore}<span className="store-btn-text"><small>COMING SOON ON</small><span>App Store</span></span></a>
+            <a href="#contact" className="store-btn">{I.appStore}<span className="store-btn-text"><small>DOWNLOAD ON THE</small><span>App Store</span></span></a>
           </div>
 
           <div className="trust-strip">
-            <span>Family Health Network</span>
-            <span>Reads Any Lab Report</span>
+            <span>iPhone · Watch · Android</span>
+            <span>Apple Watch, Understood</span>
+            <span>Whole-Family Care</span>
             <span>Privacy First</span>
           </div>
         </div>
@@ -803,7 +822,7 @@ const TABS = [
     img: scrHealthHubPeriod,
     tall: false,
     title: 'Health Hub — every record, every metric, one place.',
-    body: 'The Health Hub splits into Daily Tracking and Health Records. Symptoms, Measurements and Period History live next to Medical Reports, Medications and Family Health. End-to-end encrypted, only-you-have-access — and you reach any of the six surfaces in one tap.',
+    body: 'The Health Hub splits into Daily Tracking and Health Records. Symptoms, Measurements and Period History live next to Medical Reports, Medications and Family Health. Encrypted in transit and at rest, private to you — and you reach any of the six surfaces in one tap.',
     bullets: [
       { icon: AppIcon.heart, text: 'Symptoms, vitals and cycle logging are first-class daily surfaces.' },
       { icon: AppIcon.menstrual, text: 'Period History sits beside BP and glucose — never siloed in a separate app.' },
@@ -816,7 +835,7 @@ const TABS = [
     img: scrServicesLong,
     tall: true,
     title: 'Services — your daily decision surface.',
-    body: 'A long, deliberate scroll: Health Analysis on top, then your active plan, today’s Health Advisory rewritten as advice (not just an AQI number), Health Check-In, Diet Guide, NutriCheck, Find a Doctor, Wellness Chat, Log Workout, Exercises, and a Health Intel feed of sourced audio matched to the conditions on your profile. The whole tab is one continuous answer to “what should I do today?”.',
+    body: 'A long, deliberate scroll: Health Analysis on top, then your active plan, today’s Health Advisory rewritten as advice (not just an AQI number), Health Check-In, Diet Guide, NutriCheck, Find a Doctor, Log Workout, Exercises, and a Health Intel feed of sourced, personalised news matched to the conditions on your profile. The whole tab is one continuous answer to “what should I do today?”.',
     bullets: [
       { icon: AppIcon.air, text: 'Health Advisory rewrites today’s air quality and pollen into a personal action.' },
       { icon: AppIcon.food, text: 'NutriCheck and Diet Guide share the same dietary ledger Richie reads from.' },
@@ -833,7 +852,7 @@ const TABS = [
     bullets: [
       { icon: AppIcon.fingerprint, text: 'Biometric lock — fingerprint or face — survives screenshots and shared phones.' },
       { icon: AppIcon.family, text: 'Per-record sharing toggles for family, dependents and doctor connections.' },
-      { icon: AppIcon.doc, text: 'Export your data as structured files at any time. One-tap permanent delete.' },
+      { icon: AppIcon.doc, text: 'Close your account and wipe your identifiers in one tap; request a full export or erase anytime.' },
     ],
   },
 ];
@@ -858,7 +877,7 @@ function FourTabsSection() {
         <div className="tabs-header sr">
           <div className="section-label">The App</div>
           <h2 className="section-title">Four tabs. One continuous health graph.</h2>
-          <p className="section-subtitle">The bottom navigation is intentional. Richie is where you ask. Health Hub is where you record. Services is where you act. Profile is where you control. Every tap inside one tab updates context every other tab can read.</p>
+          <p className="section-subtitle">The bottom navigation is intentional. Richie is where you ask. Health Hub is where you record. Services is where you act. Profile is where you control. Every tap in one tab updates context every other tab can read. <span style={{color:'var(--text-tertiary)'}}>Shown on Android — the same four tabs ship on iPhone and Apple Watch.</span></p>
         </div>
 
         <div className="tabs-stage">
@@ -1508,10 +1527,10 @@ function CTASection() {
       <div className="dot-grid"/>
       <div className="container cta-inner">
         <h2 className="cta-headline sr">Your family's health,<br/><span className="gradient-text">powered by Richie. AI that truly knows you.</span></h2>
-        <p className="cta-sub sr">Download RichHealth.ai and let Richie start building your family's living health intelligence profile today. Available on Android now, iOS coming soon.</p>
+        <p className="cta-sub sr">Download RichHealth and let Richie start building your family's living health intelligence profile today. Native on iPhone, Apple Watch and Android — one account, one health graph, everywhere.</p>
         <div className="cta-download sr">
           <a href="#contact" className="store-btn">{I.playStore}<span className="store-btn-text"><small>GET IT ON</small><span>Google Play</span></span></a>
-          <a href="#contact" className="store-btn">{I.appStore}<span className="store-btn-text"><small>COMING SOON ON</small><span>App Store</span></span></a>
+          <a href="#contact" className="store-btn">{I.appStore}<span className="store-btn-text"><small>DOWNLOAD ON THE</small><span>App Store</span></span></a>
         </div>
         <div className="cta-cards sr">
           <div className="cta-card"><h3>For Families</h3><p>Start tracking your health, connect family members, and let Richie build your complete health intelligence profile.</p></div>
@@ -1563,8 +1582,9 @@ function Footer() {
 
         <div className="footer-col">
           <div className="footer-col-title">For You</div>
+          <a href="#contact">Download for iPhone</a>
           <a href="#contact">Download for Android</a>
-          <a href="#contact">iOS (coming soon)</a>
+          <a href="#contact">Apple Watch app</a>
           <button type="button" onClick={() => open('doctor-apply')}>Become a Doctor</button>
           <a href="#careers">Careers</a>
           <a href="mailto:hello@richhealth.app?subject=B2B%20Enquiry">Enterprise / B2B</a>
