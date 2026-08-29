@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 import { DIALOG_CONTENT, RICHIE_PROMPTS, JOBS, LEGAL } from './content';
+import Premium, { Consent, SiteNav, Foot } from './Premium';
+import Investors from './Investors';
+import Deep from './Deep';
+import Page from './Pages';
 
 /* Asset imports */
 import logoIcon from './assets/ic_launcher.png';
@@ -979,7 +983,14 @@ function usePage() {
     if (h.startsWith('#/careers/apply/')) return { name: 'apply', jobId: h.replace('#/careers/apply/', '') };
     if (h === '#/careers' || h.startsWith('#/careers')) return { name: 'careers' };
     if (h.startsWith('#/legal/')) return { name: 'legal', slug: h.replace('#/legal/', '') };
-    return { name: 'home', anchor: h.replace(/^#/, '') };
+    if (h === '#/investors' || h.startsWith('#/investors')) return { name: 'investors' };
+    if (h.startsWith('#/deep/')) return { name: 'deep', slug: h.replace('#/deep/', '') };
+    if (h === '#/quality' || h === '#/security' || h === '#/about')
+      return { name: 'page', slug: h.replace('#/', '') };
+    // Home, optionally with a section anchor. Both `#s-pricing` (a link written on
+    // home) and `#/#s-pricing` (the same link written on a product page, which has
+    // to name the route as well) have to land on the same section.
+    return { name: 'home', anchor: h.replace(/^#\/?/, '').replace(/^#/, '') };
   };
   const [page, setPage] = useState(parse());
   useEffect(() => {
@@ -988,11 +999,21 @@ function usePage() {
       setPage(prev => {
         // Only scroll-to-top when the page actually changes (not when an in-page anchor changes)
         if (prev.name !== next.name) {
-          window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+          // `behavior:'auto'` still obeys html{scroll-behavior:smooth} from index.css,
+          // which made every page change drift for ~1.5s. 'instant' overrides it.
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
         } else if (next.name === 'home' && next.anchor) {
           // In-page anchor on home — let the browser do native smooth-scroll
           const el = document.getElementById(next.anchor);
           if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        if (prev.name !== 'home' && next.name === 'home' && next.anchor) {
+          // Arriving home from another page *at* a section: the element does not
+          // exist until this render commits, so the scroll waits two frames.
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            const el = document.getElementById(next.anchor);
+            if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
+          }));
         }
         return next;
       });
@@ -1010,7 +1031,7 @@ function usePage() {
 function CareersPage() {
   return (
     <div className="page-shell careers-page">
-      <PageNav active="careers" />
+      <SiteNav slug="careers" alwaysStuck/>
       <main>
         <section className="careers-hero careers-hero-clean">
           <div className="container careers-hero-inner">
@@ -1037,7 +1058,7 @@ function CareersPage() {
               </div>
               <div className="careers-principle">
                 <h4>Clinical seriousness.</h4>
-                <p>Every meaningful release is reviewed by licensed clinicians on our network. Models that don’t hold up under that review do not ship. We treat this as a feature, not a tax.</p>
+                <p>Every reasoning rule Richie follows is written down, published, and checkable — the red-flag list, the order of precedence, and the things it is forbidden to say. Where we have not earned a claim, the site says so instead of going quiet.</p>
               </div>
               <div className="careers-principle">
                 <h4>Senior bias.</h4>
@@ -1085,7 +1106,7 @@ function CareersPage() {
           </div>
         </section>
       </main>
-      <Footer />
+      <Foot/>
     </div>
   );
 }
@@ -1109,7 +1130,7 @@ function ApplicationPage({ jobId }) {
   if (!job) {
     return (
       <div className="page-shell">
-        <PageNav active="careers" />
+        <SiteNav slug="careers" alwaysStuck/>
         <main className="apply-not-found">
           <div className="container" style={{padding:'120px 0',textAlign:'center'}}>
             <h2 className="section-title">Role not found</h2>
@@ -1117,7 +1138,7 @@ function ApplicationPage({ jobId }) {
             <a className="btn-primary" href="#/careers">See open roles</a>
           </div>
         </main>
-        <Footer />
+        <Foot/>
       </div>
     );
   }
@@ -1166,7 +1187,7 @@ function ApplicationPage({ jobId }) {
 
   return (
     <div className="page-shell apply-page">
-      <PageNav active="careers" />
+      <SiteNav slug="careers" alwaysStuck/>
       <main>
         <div className="container apply-container">
           <a href="#/careers" className="apply-back">&larr; Back to all roles</a>
@@ -1324,7 +1345,7 @@ function ApplicationPage({ jobId }) {
           </div>
         </div>
       </main>
-      <Footer />
+      <Foot/>
     </div>
   );
 }
@@ -1359,23 +1380,6 @@ function TextareaField({ label, required, minLength, ...rest }) {
 }
 
 /* PageNav — slim navbar reused across non-home pages */
-function PageNav({ active }) {
-  return (
-    <nav className="nav nav-scrolled" role="navigation" aria-label="Main navigation">
-      <div className="container nav-inner">
-        <a href="#/" className="nav-logo" aria-label="RichHealth Home">
-          <img src={logoIcon} alt="" className="nav-logo-icon" />
-          <span className="nav-logo-text">RichHealth<span style={{color:'var(--accent-primary)'}}>.ai</span></span>
-        </a>
-        <div className="nav-links">
-          <a href="#/">Home</a>
-          <a href="#/careers" className={active === 'careers' ? 'nav-active' : ''}>Careers</a>
-          <a href="mailto:hello@richhealth.app">Contact</a>
-        </div>
-      </div>
-    </nav>
-  );
-}
 
 function MoatSection() {
   return (
@@ -1547,79 +1551,6 @@ function CTASection() {
   );
 }
 
-function Footer() {
-  const open = (key) => window.dispatchEvent(new CustomEvent('openModal', { detail: key }));
-  return (
-    <footer className="footer">
-      <div className="container footer-grid">
-        <div className="footer-brand">
-          <div className="footer-logo">
-            <img src={logoIcon} alt="" className="footer-logo-icon" />
-            <span className="footer-logo-text">RichHealth<span style={{color:'var(--accent-primary)'}}>.ai</span></span>
-          </div>
-          <div className="footer-tagline">Your health, intelligently Rich.</div>
-          <div className="footer-stores">
-            <a href="#contact" className="footer-store-btn">{I.playStore}<span>Google Play</span></a>
-            <a href="#contact" className="footer-store-btn">{I.appStore}<span>App Store</span></a>
-          </div>
-          <div className="footer-social">
-            <a href="https://x.com/richhealthai" className="footer-link" target="_blank" rel="noopener noreferrer" aria-label="X">{I.x}</a>
-            <a href="https://linkedin.com/company/richhealth-ai" className="footer-link" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">{I.linkedin}</a>
-            <a href="https://instagram.com/richhealth.ai" className="footer-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">{I.instagram}</a>
-            <a href="https://youtube.com/@richhealthai" className="footer-link" target="_blank" rel="noopener noreferrer" aria-label="YouTube">{I.youtube}</a>
-            <a href="mailto:hello@richhealth.app" className="footer-link" aria-label="Email">{I.mail}</a>
-          </div>
-        </div>
-
-        <div className="footer-col">
-          <div className="footer-col-title">Product</div>
-          <a href="#platform">Platform</a>
-          <a href="#moat">Why RichHealth.ai</a>
-          <a href="#pricing">Pricing</a>
-          <a href="#trust">Privacy &amp; Trust</a>
-          <a href="#roadmap">Roadmap</a>
-        </div>
-
-        <div className="footer-col">
-          <div className="footer-col-title">For You</div>
-          <a href="#contact">Download for iPhone</a>
-          <a href="#contact">Download for Android</a>
-          <a href="#contact">Apple Watch app</a>
-          <button type="button" onClick={() => open('doctor-apply')}>Become a Doctor</button>
-          <a href="#careers">Careers</a>
-          <a href="mailto:hello@richhealth.app?subject=B2B%20Enquiry">Enterprise / B2B</a>
-          <a href="mailto:hello@richhealth.app?subject=Investor%20Enquiry">Press &amp; Investors</a>
-        </div>
-
-        <div className="footer-col">
-          <div className="footer-col-title">Legal</div>
-          <a href="#/legal/privacy-policy">Privacy Policy</a>
-          <a href="#/legal/terms">Terms of Service</a>
-          <a href="#/legal/cookies">Cookie Policy</a>
-          <a href="#/legal/refund">Refund &amp; Cancellation</a>
-          <a href="#/legal/medical-disclaimer">Medical Disclaimer</a>
-        </div>
-
-        <div className="footer-col">
-          <div className="footer-col-title">Contact</div>
-          <button type="button" onClick={() => open('contact-us')}>All contact channels</button>
-          <a href="mailto:support@richhealth.app">support@richhealth.app</a>
-          <a href="mailto:privacy@richhealth.app">privacy@richhealth.app</a>
-          <a href="mailto:billing@richhealth.app">billing@richhealth.app</a>
-        </div>
-      </div>
-
-      <div className="container footer-bottom">
-        <div className="footer-disclaimer">
-          <strong>Medical disclaimer:</strong> RichHealth.ai is an AI health intelligence platform. Richie’s output is informational and is not a substitute for professional medical advice, diagnosis, or treatment. Always consult a licensed clinician for medical decisions. In an emergency, call your local emergency number.
-        </div>
-        <div className="footer-copy">
-          &copy; {new Date().getFullYear()} RichHealth Technologies Inc. &middot; All rights reserved.
-        </div>
-      </div>
-    </footer>
-  );
-}
 
 /* =============================================================
    MODAL DIALOG
@@ -1738,7 +1669,7 @@ function LegalPage({ slug }) {
   if (!data) {
     return (
       <div className="page-shell">
-        <PageNav />
+        <SiteNav alwaysStuck/>
         <main>
           <div className="container" style={{padding:'120px 0',textAlign:'center'}}>
             <h2 className="section-title">Document not found</h2>
@@ -1746,7 +1677,7 @@ function LegalPage({ slug }) {
             <a className="btn-primary" href="#/">Back to home</a>
           </div>
         </main>
-        <Footer />
+        <Foot/>
       </div>
     );
   }
@@ -1756,7 +1687,7 @@ function LegalPage({ slug }) {
 
   return (
     <div className="page-shell legal-page">
-      <PageNav />
+      <SiteNav alwaysStuck/>
       <main>
         <div className="container legal-container">
           <a href="#/" className="apply-back">&larr; Back to home</a>
@@ -1801,11 +1732,13 @@ function LegalPage({ slug }) {
           </div>
         </div>
       </main>
-      <Footer />
+      <Foot/>
     </div>
   );
 }
 
+// Legacy home, superseded by <Premium/>. Kept for reference/rollback.
+// eslint-disable-next-line no-unused-vars
 function HomePage() {
   useScrollReveal();
   return (
@@ -1828,7 +1761,7 @@ function HomePage() {
         <hr className="section-divider"/>
         <CTASection />
       </main>
-      <Footer />
+      <Foot/>
     </div>
   );
 }
@@ -1853,17 +1786,20 @@ function App() {
   if (page.name === 'careers') pageEl = <CareersPage />;
   else if (page.name === 'apply') pageEl = <ApplicationPage jobId={page.jobId} />;
   else if (page.name === 'legal') pageEl = <LegalPage slug={page.slug} />;
-  else pageEl = <HomePage />;
+  else if (page.name === 'investors') pageEl = <Investors />;
+  else if (page.name === 'deep') pageEl = <Deep slug={page.slug} />;
+  else if (page.name === 'page') pageEl = <Page slug={page.slug} />;
+  else pageEl = <Premium />;
 
   return (
     <>
       {pageEl}
-      {page.name === 'home' && !chatOpen && (
-        <button className="richie-fab" onClick={() => setChatOpen(true)} aria-label="Talk to Richie">
-          <img src={logoIcon} alt="Richie" className="richie-fab-img" />
-          <span className="richie-fab-label">Richie</span>
-        </button>
-      )}
+      {/* Mounted at the ROOT, not inside Premium. A visitor can land on any route
+          — a feature page, the privacy policy, a job ad — and the choice has to be
+          offered wherever they arrive, then never again. */}
+      <Consent/>
+      {/* Legacy floating chat button retired on the redesigned home: it collided with
+          the new layout on mobile, and the page now has its own inline Richie demo. */}
       {modalKey && <Modal contentKey={modalKey} onClose={() => setModalKey(null)} />}
       {chatOpen && <RichieChat onClose={() => setChatOpen(false)} />}
     </>
