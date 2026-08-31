@@ -8,10 +8,11 @@ import sFamilyChat from './assets/screens/ios/ios_family_chat.jpg';
 import sModel from './assets/screens/ios/ios_model_picker.jpg';
 import sWatchScr from './assets/screens/ios/ios_measurements_watch.jpg';
 import sCheckin from './assets/screens/ios/ios_checkin.jpg';
-import sAnalysis from './assets/screens/health_analysis.jpg';
 import sNutri from './assets/screens/nutricheck_result.jpg';
 import sProfile from './assets/screens/ios/ios_profile.jpg';
 import sReports from './assets/screens/ios/ios_reports.jpg';
+import sMeasure from './assets/Measurements.png';
+import sServices from './assets/screens/services_hub_long.jpg';
 import sMeds from './assets/screens/ios/ios_medications.jpg';
 import sSymptoms from './assets/screens/ios/ios_symptoms.jpg';
 import sFamily from './assets/screens/ios/ios_family.jpg';
@@ -51,6 +52,29 @@ export function useGlow(){useEffect(()=>{
   window.addEventListener('pointermove',on,{passive:true});
   return()=>{ window.removeEventListener('pointermove',on); if(raf)cancelAnimationFrame(raf); };
 },[]);}
+
+/* ── "PICK ONE OF N", CODED ONCE ──────────────────────────────────────────────
+   Four controls asked the same question and answered it four different ways: the
+   billing toggle was a radiogroup, the platform toggle was a role=group of
+   aria-pressed buttons, the carousel dots used aria-current, and the FAQ
+   category pills carried nothing at all but an `.on` class. Every one of them is
+   "exactly one of N is chosen", which is what role=radio means — so they are all
+   radiogroups now, with the roving tabindex and the arrow keys a radiogroup is
+   expected to have. This is that keyboard behaviour, written once. */
+export function radioKeys(i,n,pick){
+  return e=>{
+    let t=-1;
+    if(e.key==='ArrowRight'||e.key==='ArrowDown') t=(i+1)%n;
+    else if(e.key==='ArrowLeft'||e.key==='ArrowUp') t=(i-1+n)%n;
+    else if(e.key==='Home') t=0;
+    else if(e.key==='End') t=n-1;
+    else return;
+    e.preventDefault(); pick(t);
+    const g=e.currentTarget.parentElement;
+    const b=g?g.querySelectorAll('[role="radio"]'):null;
+    if(b&&b[t]) b[t].focus();
+  };
+}
 
 
 /* ═══ THE HERO DEVICE — both platforms, always ════════════════════════════════
@@ -103,12 +127,17 @@ function TwoPhones(){
           </div>
         </div>))}
     </div>
-    <div className="px-two__sw" role="group" aria-label="Choose a platform">
-      <span className="px-two__lead">Available on</span>
-      <div className="px-two__seg">
-        <i className="px-two__ink" style={{transform:`translateX(${n*100}%)`}} aria-hidden="true"/>
+    <div className="px-two__sw">
+      <span className="px-two__lead" id="px-two-lead">Available on</span>
+      <div className="px-two__seg" role="radiogroup" aria-labelledby="px-two-lead">
+        {/* `translate`, not a transform — the billing thumb next to it already
+            animated on `translate`, and two identical controls must not be
+            driven by two different properties. */}
+        <i className="px-two__ink" style={{translate:`${n*100}% 0`}} aria-hidden="true"/>
         {PHONES.map((p,i)=>(
-          <button key={p.k} className={n===i?'on':''} aria-pressed={n===i}
+          <button key={p.k} type="button" role="radio" aria-checked={n===i}
+            tabIndex={n===i?0:-1} className={n===i?'on':''}
+            onKeyDown={radioKeys(i,PHONES.length,pick)}
             onClick={()=>pick(i)}>{p.label}</button>))}
       </div>
     </div>
@@ -192,7 +221,7 @@ const I={
 /* ── shells ── */
 export function Mast({k}){return(<div className="px-mast"><span className="px-kicker">{k}</span><i aria-hidden="true"/></div>);}
 export function Head({k,t,l,c}){return(<><Mast k={k}/><div className={`px-head ${c?'px-head--c':''} px-rv`}><h2 className="px-h2">{t}</h2>{l&&<p className="px-lede">{l}</p>}</div></>);}
-export function Band({id,alt,children}){return(<section className={`px-band ${alt?'px-band--alt':''}`} id={id}>{children}</section>);}
+export function Band({id,alt,first,children}){return(<section className={`px-band ${alt?'px-band--alt':''} ${first?'px-band--first':''}`} id={id}>{children}</section>);}
 export function Dev({src,alt}){return(<div className="px-dev fx-card fx-glow"><img src={src} alt={alt}/></div>);}
 
 /* ═══ CROP — a screenshot shown at the size you can actually read ═══
@@ -255,7 +284,6 @@ function Frag({icon,title,time,body}){return(
    text; four columns with a mark each is scannable at a glance. */
 export const FEATURES=[
  ['richie','Richie','msg'],
- ['health-analysis','Health analysis','analysis'],
  ['checkins','Health check-ins','checkin'],
  ['day','Every day','today'],
  ['cycle','Cycle intelligence','gyn'],
@@ -266,18 +294,41 @@ export const FEATURES=[
  ['evidence','Our sources','cognition'],
  ['privacy','Privacy','lock'],
 ];
+/* One logo, used by the nav and the footer — it was duplicated markup with an
+   inline style at both sites.
+
+   href="#/" alone was a dead control on the home page: usePage only scrolls on
+   `hashchange`, and clicking "#/" while the hash is already "#/" fires no event,
+   so the logo did nothing. The route change is still the anchor's job (so
+   middle-click and "open in new tab" keep working); the handler only covers the
+   one case the hash cannot express — already home, scroll back to the top. */
+export function Logo(){
+  const home=()=>{const h=window.location.hash;return h===''||h==='#'||h==='#/';};
+  return(
+    <a className="px-logo" href="#/" aria-label="RichHealth home"
+      onClick={e=>{ if(home()){ e.preventDefault();
+        window.scrollTo({top:0,left:0,behavior:'smooth'}); } }}>
+      <img src={logo} alt=""/><span>RichHealth<i>.ai</i></span>
+    </a>);}
+
 export function SiteNav({slug,alwaysStuck}){
   const[stuck,setStuck]=useState(!!alwaysStuck),[open,setOpen]=useState(false);
   /* ONE NAV FOR THE WHOLE SITE. The feature pages used to render a second nav of
      their own — seven long labels that wrapped onto two lines — plus a "Back to
      product" button, so a reader had to understand that they had left the site
      and find the way back. They are pages of this site, so they hang off this
-     nav under Features and the route simply changes underneath. */
+     nav under Explore and the route simply changes underneath.
+
+     It was called "Features" while a section link beside it said "What it does"
+     — the same words for two different destinations, so a reader could not
+     predict which one held what. The section is now "What it holds"; this is
+     "Explore", which is already the name of that column in the footer. */
   const[feat,setFeat]=useState(false);
-  const featRef=useRef(null);
+  const featRef=useRef(null),featBtn=useRef(null);
+  const sheetRef=useRef(null),burgerRef=useRef(null),wasOpen=useRef(false);
   useEffect(()=>{ if(!feat) return;
     const away=e=>{ if(featRef.current&&!featRef.current.contains(e.target)) setFeat(false); };
-    const esc=e=>{ if(e.key==='Escape'){ setFeat(false); featRef.current?.querySelector('button')?.focus(); } };
+    const esc=e=>{ if(e.key==='Escape'){ setFeat(false); featBtn.current?.focus(); } };
     document.addEventListener('pointerdown',away);
     document.addEventListener('keydown',esc);
     return()=>{ document.removeEventListener('pointerdown',away); document.removeEventListener('keydown',esc); };},[feat]);
@@ -287,100 +338,285 @@ export function SiteNav({slug,alwaysStuck}){
     const on=()=>setStuck(window.scrollY>20);
     window.addEventListener('scroll',on,{passive:true}); on();
     return()=>window.removeEventListener('scroll',on);},[alwaysStuck]);
-  const links=[['#/#s-does','What it does'],['#/#s-pricing','Pricing'],['#/#s-faq','FAQs']];
-  const onFeature=!!slug;
+
+  /* ── THE SHEET IS A MODAL, and was not being treated as one ─────────────────
+     It was a full-screen position:fixed overlay with no dialog role, no escape,
+     no focus trap, no focus return and no scroll lock, so the page kept
+     scrolling underneath a menu that covered it. It is the ONLY navigation a
+     phone gets, so it gets the whole contract.
+
+     The node is always mounted and toggled with `hidden`, not conditionally
+     rendered: `hidden` takes it out of the accessibility tree AND lets the
+     burger carry a permanent aria-controls that always resolves. */
+
+  /* Scroll lock. The body is pinned at its current offset rather than the root
+     being clipped — overflow on the root would clip a fixed child and is banned
+     on this site anyway. The offset is only restored if the sheet closed WITHOUT
+     navigating; a link inside the sheet changes the hash, and the router owns
+     the scroll from there. */
+  useEffect(()=>{
+    if(!open) return undefined;
+    const b=document.body, y=window.scrollY, h0=window.location.hash;
+    const prev={position:b.style.position, top:b.style.top, width:b.style.width};
+    b.style.position='fixed'; b.style.top=`-${y}px`; b.style.width='100%';
+    document.documentElement.setAttribute('data-sheet','open');
+    return()=>{ b.style.position=prev.position; b.style.top=prev.top; b.style.width=prev.width;
+      document.documentElement.removeAttribute('data-sheet');
+      if(window.location.hash===h0) window.scrollTo(0,y); };
+  },[open]);
+
+  /* Escape, first focus, and a real Tab cycle. The sheet carries its own close
+     button, so the trap is simply "everything inside the dialog". */
+  useEffect(()=>{
+    if(!open) return undefined;
+    const el=sheetRef.current; if(!el) return undefined;
+    const tab=()=>[...el.querySelectorAll('a[href],button:not([disabled])')];
+    const f0=tab()[0]; if(f0) f0.focus();
+    const onKey=e=>{
+      if(e.key==='Escape'){ e.preventDefault(); setOpen(false); return; }
+      if(e.key!=='Tab') return;
+      const f=tab(); if(!f.length) return;
+      const first=f[0], last=f[f.length-1];
+      if(e.shiftKey&&document.activeElement===first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey&&document.activeElement===last){ e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown',onKey);
+    return()=>document.removeEventListener('keydown',onKey);
+  },[open]);
+  /* focus goes back to the control that opened it */
+  useEffect(()=>{ if(open){ wasOpen.current=true; }
+    else if(wasOpen.current){ wasOpen.current=false; burgerRef.current?.focus(); } },[open]);
+
+  /* ── THE NAV MODEL ──────────────────────────────────────────────────────────
+     Three links against TEN sections meant 6,710px of a 10,150px page — 66% of
+     the scroll — with nothing lit: a "you are here" that was right a third of
+     the time. One item per section would be ten items, which is a documentation
+     sidebar, not a marketing bar. So each item owns a RANGE, in document order,
+     and every section belongs to exactly one. The highlight is never orphaned.
+
+     `key` is also the href target: clicking lands on the section the label names,
+     while scrolling anywhere inside the range keeps it lit. */
+  /* SIX, NOT FIVE. Every section on the page was already owned by an item —
+     nothing was unmapped — but "What it holds" owned s-does, s-intake AND
+     s-holds, which is 3,664px of scrolling with the indicator frozen. Sitting
+     still for that long reads exactly like a section with no nav item. s-holds
+     is its own thing anyway (the section is headed "Six more features"), so it
+     gets its own item and no group now spans more than two sections.
+
+     The hero and the 63px sources strip stay unmapped on purpose: one is the
+     top of the page, which the logo already returns you to, and the other is a
+     row of logos, not a destination. */
+  /* ONE WORD EACH, AND THE SECTION FINISHES IT. The item you click is the first
+     word of the eyebrow you land on: Why -> "Why this exists", Who -> "Who it's
+     for", What -> "What it holds", Which -> "Which AI reads it", How -> "How it
+     answers". The nav went from 817px of prose labels to a row of single words,
+     and every section now announces itself with the word you used to get there.
+
+     Price and FAQs stay nouns. They are the two destinations people look for by
+     name rather than by question, and forcing them into the pattern ("What it
+     costs", "What people ask") would cost clarity to buy symmetry.
+
+     Ranges are contiguous — s-does and s-holds are both "what it does with your
+     record" and now sit next to each other, which is why Holds moved ahead of
+     Intake in the render below. Nothing spans a gap, so the indicator can never
+     go backwards. */
+  const links=[
+    ['s-problem','Why',   ['s-problem']],
+    ['s-who',    'Who',   ['s-who']],
+    ['s-does',   'What',  ['s-does','s-holds']],
+    ['s-intake', 'Which', ['s-intake']],
+    ['s-proof',  'How',   ['s-proof']],
+    ['s-pricing','Price', ['s-pricing']],
+    ['s-faq',    'FAQs',  ['s-faq','s-get']],
+  ];
+  /* Flat list of every section and the item that owns it. Deliberately NOT
+     assumed to be in document order: "What it holds" owns s-does, s-intake and
+     s-holds, but s-proof sits between s-intake and s-holds on the page, so the
+     ranges interleave. The spy therefore takes the LOWEST section that has
+     passed the line rather than walking in order and stopping early — which
+     was lighting the wrong item for 1,800px of the page. */
+  const flat=[]; links.forEach(([k,,ids])=>ids.forEach(id=>flat.push([id,k])));
+  /* ── ACTIVE ROUTE ───────────────────────────────────────────────────────────
+     `onFeature = !!slug` marked Features active on careers, investors, quality,
+     security and about — five routes that are not features. And nothing ever set
+     `.on` on the three section links, so a nav class-named `.px-spy` did no
+     scrollspying at all. It does now, off an observer on the three sections, in
+     REACT STATE — never a classList.add on a node React re-renders. */
+  const[spy,setSpy]=useState('');
+  /* Scroll + rAF, not IntersectionObserver. An observer answers "is this section
+     on screen", which cannot express "which of five ranges am I in" — two
+     ranges are on screen at every boundary and a section taller than the
+     viewport is in none of them. Reading the last section whose top has passed
+     the nav line answers it exactly, at every scroll position, including inside
+     a 1,339px section and at the very bottom of the page. */
+  useEffect(()=>{
+    if(slug){ setSpy(''); return undefined; }        // only home has these sections
+    let raf=0;
+    const pick=()=>{
+      raf=0;
+      const nav=parseFloat(getComputedStyle(document.documentElement)
+        .getPropertyValue('--px-nav'))||64;
+      const line=window.scrollY + nav + 10 + 24;     // nav sits at top:10, +24 of air
+      let k='', best=-Infinity;
+      for(const [id,key] of flat){
+        const el=document.getElementById(id);
+        if(!el) continue;                             // a removed section must not throw
+        const top=el.getBoundingClientRect().top + window.scrollY;
+        if(top<=line && top>best){ best=top; k=key; } // furthest one already begun
+      }
+      setSpy(p=>p===k?p:k);                           // no state churn on every frame
+    };
+    const on=()=>{ if(!raf) raf=requestAnimationFrame(pick); };
+    window.addEventListener('scroll',on,{passive:true});
+    window.addEventListener('resize',on);
+    /* Arriving from another route at #/#s-pricing scrolls two frames after this
+       effect runs, so the first read has to happen after that, not before. */
+    requestAnimationFrame(()=>requestAnimationFrame(pick));
+    return()=>{ window.removeEventListener('scroll',on); window.removeEventListener('resize',on);
+      if(raf) cancelAnimationFrame(raf); };
+  },[slug]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ── THE SLIDING INDICATOR ──────────────────────────────────────────────────
+     One element behind the links rather than a background and an underline on
+     each, so the highlight travels instead of blinking from one item to the
+     next. Measured off getBoundingClientRect, not offsetLeft, because the
+     Explore control is nested one level deeper than its siblings and would
+     otherwise be measured against the wrong offsetParent. */
+  const spyRef=useRef(null);
+  const[ind,setInd]=useState(null);
+  const[armed,setArmed]=useState(false);   // no slide-in from x=0 on first paint
+  useEffect(()=>{
+    const root=spyRef.current; if(!root) return undefined;
+    const place=()=>{
+      const el=root.querySelector('.on');
+      if(!el){ setInd(null); return; }
+      const r=el.getBoundingClientRect(), rr=root.getBoundingClientRect();
+      setInd({x:Math.round(r.left-rr.left), w:Math.round(r.width)});
+    };
+    place();
+    const raf=requestAnimationFrame(()=>setArmed(true));
+    window.addEventListener('resize',place);
+    /* the labels are set in a webfont; measured before it loads, every width is
+       wrong by a few px and stays wrong until something else forces a re-measure */
+    if(document.fonts&&document.fonts.ready) document.fonts.ready.then(place).catch(()=>{});
+    return()=>{ window.removeEventListener('resize',place); cancelAnimationFrame(raf); };
+  },[spy,slug]);
+  const onFeature=FEATURES.some(([sl])=>sl===slug);
   return(<>
     <nav className={`px-nav ${stuck?'is-stuck':''}`}><div className="px-nav__in">
-      <a className="px-logo" href="#/"><img src={logo} alt=""/><span>RichHealth<i style={{fontStyle:'normal',color:'var(--px-teal)'}}>.ai</i></span></a>
-      <div className="px-spy">
-        {links.map(([h,l])=><a key={h} href={h}>{l}</a>)}
+      <Logo/>
+      <div className={`px-spy ${armed?'is-armed':''}`} ref={spyRef}>
+        {/* the travelling highlight — one element, behind the labels */}
+        <span className="px-spy__ind" aria-hidden="true"
+          style={ind?{transform:`translateX(${ind.x}px)`,width:ind.w,opacity:1}:{opacity:0}}/>
+        {links.map(([k,l])=><a key={k} href={`#/#${k}`} className={spy===k?'on':''}
+          aria-current={spy===k?'true':undefined}>{l}</a>)}
         <div className="px-navmenu" ref={featRef}>
-          <button type="button" className={`px-navmenu__btn ${onFeature?'on':''} ${feat?'is-open':''}`}
-            aria-haspopup="true" aria-expanded={feat} onClick={()=>setFeat(f=>!f)}>
+          <button type="button" ref={featBtn} className={`px-navmenu__btn ${onFeature?'on':''} ${feat?'is-open':''}`}
+            aria-haspopup="menu" aria-expanded={feat} aria-controls="px-navmenu-panel"
+            onClick={()=>setFeat(f=>!f)}>
             {/* A stroked chevron, not the app's filled ic_arrow_forward_ios. That
                 glyph is a solid wedge built to sit on a 24dp list row; at 11px
                 beside 13.5px nav text it read as a heavy black arrowhead. This is
                 the same outline weight the carousel arrows use. */}
-            Features
+            Explore
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
               strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M6 9l6 6 6-6"/></svg>
           </button>
-          {feat&&(
-            <div className="px-navmenu__panel" role="menu">
+          {/* Mounted and toggled with `hidden`, like the sheet: `hidden` takes
+              it out of the accessibility tree AND lets the trigger carry an
+              aria-controls that always resolves to something. */}
+          <div className="px-navmenu__panel" id="px-navmenu-panel" role="menu" hidden={!feat}>
               {FEATURES.map(([sl,l,ic])=>(
                 <a key={sl} role="menuitem" href={`#/deep/${sl}`}
-                  className={slug===sl?'on':''} onClick={()=>setFeat(false)}>
+                  className={slug===sl?'on':''}
+                  aria-current={slug===sl?'page':undefined} onClick={()=>setFeat(false)}>
                   <span className="px-navmenu__ic"><Ico n={ic} size={17}/></span>
                   <span>{l}</span>
                 </a>))}
-            </div>)}
+          </div>
         </div>
       </div>
-      {/* "Get the app" in a filled teal pill was the loudest thing on a page
-          about someone's medical history. A quiet, precise word does more work
-          for a product at this price — and "Start free" is the true one, since
-          asking genuinely costs nothing. */}
-      <a href="#/#s-pricing" className="px-nav__cta">Start free<i aria-hidden="true"/></a>
-      <button className="px-burger" aria-label="Menu" aria-expanded={open} onClick={()=>setOpen(!open)}>&#9776;</button>
+      {/* No CTA here. The hero carries it, and a second copy in the bar directly
+          above it was the same ask twice on one screen. */}
+      <button className="px-burger" ref={burgerRef} type="button"
+        aria-label={open?'Close menu':'Menu'} aria-expanded={open} aria-controls="px-sheet"
+        onClick={()=>setOpen(o=>!o)}>&#9776;</button>
     </div></nav>
-    {open&&<div className="px-sheet" onClick={()=>setOpen(false)}>
-      {links.map(([h,l])=><a key={h} href={h}>{l}</a>)}
-      {/* These were href="#/india" and href="#/privacy". App.js routes feature
-          pages on the "#/deep/" prefix, so neither matched anything — two dead
-          links, on the only nav a phone ever sees. The sheet now lists all seven
-          from the same source the desktop menu uses. */}
-      <span className="px-sheet__k">Features</span>
-      {FEATURES.map(([sl,l])=><a key={sl} href={`#/deep/${sl}`} className={slug===sl?'on':''}>{l}</a>)}
-      <a href="#/#s-pricing" className="px-nav__cta px-nav__cta--sheet">Start free<i aria-hidden="true"/></a></div>}
+    <div className="px-sheet" id="px-sheet" ref={sheetRef} hidden={!open}
+      role="dialog" aria-modal="true" aria-label="Menu" onClick={()=>setOpen(false)}>
+      {/* The sheet sits ABOVE the nav, not under it. Under it, the first link
+          rendered behind the fixed logo pill — the menu was centred in a box the
+          nav was already standing in. It now owns the whole screen, carries its
+          own logo and close control, and scrolls when fourteen entries do not
+          fit a phone. */}
+      <div className="px-sheet__top">
+        <Logo/>
+        <button className="px-burger px-sheet__x" type="button" aria-label="Close menu"
+          onClick={()=>setOpen(false)}>&#10005;</button>
+      </div>
+      <div className="px-sheet__nav">
+        {links.map(([k,l])=><a key={k} href={`#/#${k}`} className={spy===k?'on':''}
+          aria-current={spy===k?'true':undefined}>{l}</a>)}
+        {/* These were href="#/india" and href="#/privacy". App.js routes feature
+            pages on the "#/deep/" prefix, so neither matched anything — two dead
+            links, on the only nav a phone ever sees. The sheet now lists all
+            eleven from the same source the desktop menu uses. */}
+        <span className="px-sheet__k">Explore</span>
+        {FEATURES.map(([sl,l])=><a key={sl} href={`#/deep/${sl}`} className={slug===sl?'on':''}
+          aria-current={slug===sl?'page':undefined}>{l}</a>)}
+        {/* was .px-nav__cta--sheet, which the 1000px breakpoint set to
+            display:none — the phone menu's only CTA was invisible. */}
+        <a href="#/#s-get" className="px-btn px-btn--fill fx-glow px-arw px-sheet__cta">Join the waitlist</a>
+      </div>
+    </div>
   </>);
 }
 function Nav(){ return <SiteNav/>; }
 
-/* Store badges — official geometry, rebuilt as inline SVG so they stay crisp on dark.
-   Drop official PNGs into src/assets/badges/ and swap the src if you prefer the shipped artwork. */
-const BADGE={
-  apple:(
-    <svg viewBox="0 0 120 40" role="img" aria-hidden="true" focusable="false">
-      <rect x="0.5" y="0.5" width="119" height="39" rx="7.5" fill="#000" stroke="rgba(255,255,255,.55)"/>
-      <g fill="#fff" transform="translate(11.5,8.2) scale(0.98)">
-        <path d="M13.6 12.2c-.02-2.2 1.8-3.26 1.88-3.31-1.03-1.5-2.62-1.7-3.19-1.73-1.36-.14-2.65.8-3.34.8-.69 0-1.75-.78-2.87-.76-1.48.02-2.84.86-3.6 2.18-1.53 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.25 2.74 2.21 1.1-.04 1.52-.71 2.85-.71 1.33 0 1.7.71 2.86.69 1.18-.02 1.93-1.08 2.65-2.14.84-1.23 1.18-2.42 1.2-2.48-.03-.01-2.3-.88-2.32-3.5z"/>
-        <path d="M11.41 5.76c.6-.73 1.01-1.75.9-2.76-.87.04-1.93.58-2.55 1.31-.56.65-1.05 1.68-.92 2.67.97.08 1.96-.49 2.57-1.22z"/>
-      </g>
-      <text x="33" y="16" fill="#fff" fontFamily="-apple-system,Helvetica,Arial,sans-serif" fontSize="8" letterSpacing=".2">Download on the</text>
-      <text x="33" y="30" fill="#fff" fontFamily="-apple-system,Helvetica,Arial,sans-serif" fontSize="17" fontWeight="500" letterSpacing="-.4">App Store</text>
-    </svg>),
-  play:(
-    <svg viewBox="0 0 135 40" role="img" aria-hidden="true" focusable="false">
-      <rect x="0.5" y="0.5" width="134" height="39" rx="7.5" fill="#000" stroke="rgba(255,255,255,.55)"/>
-      <g transform="translate(11,9.4) scale(0.93)">
-        <path d="M.62.42C.31.75.13 1.26.13 1.92v18.16c0 .66.18 1.17.49 1.5l.06.06L10.86 11.2v-.24L.68.36.62.42z" fill="#00A0FF"/>
-        <path d="M14.25 14.6l-3.39-3.4v-.24l3.4-3.4.07.05 4.02 2.28c1.15.65 1.15 1.72 0 2.38l-4.02 2.28-.08.05z" fill="#FFBC00"/>
-        <path d="M14.33 14.55L10.86 11.08.62 21.58c.38.4 1 .45 1.71.05l12-6.82z" fill="#FF3A44"/>
-        <path d="M14.33 7.61L2.33.79C1.62.39 1 .44.62.84l10.24 10.24 3.47-3.47z" fill="#00D96D"/>
-      </g>
-      <text x="40" y="16" fill="#fff" fontFamily="Roboto,Arial,sans-serif" fontSize="7.6" letterSpacing="1.1">GET IT ON</text>
-      <text x="40" y="30.5" fill="#fff" fontFamily="Roboto,Arial,sans-serif" fontSize="16.5" fontWeight="500" letterSpacing="-.2">Google Play</text>
-    </svg>),
-};
 
 /* ═══ 01 HERO ═══ */
-const SIGNALS=[['Heart rate','78','bpm','var(--px-ok)'],['Resting HR','56','bpm','var(--px-ok)'],['SpO₂','97','%','var(--px-ok)'],['Sleep','6h 40','m','var(--px-watch)'],['Glucose','128','mg/dL','var(--px-watch)'],['HbA1c','5.8','%','var(--px-watch)'],['LDL','142','mg/dL','var(--px-attn)'],['Vitamin D','18','ng/mL','var(--px-attn)'],['Steps','8,420','','var(--px-ok)'],['AQI · Delhi','186','','var(--px-attn)'],['Adherence','82','%','var(--px-watch)'],['Cycle day','14','','var(--px-ok)'],['Papa · BP','138/86','','var(--px-watch)']];
 function Hero(){return(
   <header className="px-hero" id="top">
     <div className="px-wrap px-hero__grid">
       <div className="px-rv in">
-        <p className="px-tag"><span>Your health, intelligently Rich.</span></p>
+        <p className="px-tag"><span>Meet Richie</span></p>
         <h1 className="px-hero__h1">
-          One health record.<br/>
-          For <span className="px-rot"><span className="px-rot__t">
-            <span>you.</span><span>your kids.</span><span>your parents.</span><span>everyone.</span><span>you.</span>
-          </span></span>
+          Your family’s <span className="px-rot"><span className="px-rot__t">
+            <span>Health.</span><span>Wellness.</span><span>Future.</span><span>Story.</span><span>Health.</span>
+          </span></span><br/>
+          AI that knows you.
         </h1>
-        <p className="px-hero__sub">Reports, medicines, watch data and daily check-ins in one place, for you and the people you look after. Richie reads all of it before it answers.</p>
-        <p className="px-hero__trust">Free on iPhone, Apple Watch and Android. Your data is never sold or shared.</p>
+        <p className="px-hero__sub">Richie is the health AI that reads your record before it answers. Medical reports, medicines, symptoms, periods, check-ins and watch data — for you, and for the children and parents you add.</p>
+        {/* THE HERO HAD NO CTA. The only affordance in it was the platform
+            toggle, and the nav CTA beside it is display:none below 1000px — so
+            on a phone there was nothing above the fold to act on at all. One
+            primary, in the same words and pointing at the same field as every
+            other instance on the site. The platform toggle in the stage stays
+            the secondary affordance; a second button here would only repeat the
+            scroll the reader is already doing. */}
+        <div className="px-hero__btns">
+          <a href="#get" className="px-btn px-btn--fill fx-glow px-arw">Join the waitlist</a>
+        </div>
+        {/* This read "Free on iPhone, Apple Watch and Android" — present tense,
+            under a hero shot, on a site for an app that is not on either store
+            yet. The platforms and the price are true; only the tense was not. */}
+        <p className="px-hero__trust">Launching {LAUNCH_LONG} on iPhone, Apple Watch and Android. Free to start, and your data is never sold or shared.</p>
       </div>
       <div className="px-stage px-rv in">
+        {/* The three floating readings. .px-chip and its --1/--2/--3 positions,
+            its pxRise entry and its --d stagger were all still in the stylesheet
+            with nothing rendering them — the markup had been dropped at some
+            point and left the CSS orphaned. Three readings, no bobbing, each
+            from a different source so the point of one record is made by the
+            hero itself: a lab value, a watch reading, and the local air. */}
+        <span className="px-chip px-chip--1" aria-hidden="true">
+          <i style={{background:'var(--px-attn)'}}/><b>142</b><span>LDL mg/dL</span></span>
+        <span className="px-chip px-chip--2" aria-hidden="true">
+          <i style={{background:'var(--px-ok)'}}/><b>56</b><span>Resting HR</span></span>
+        <span className="px-chip px-chip--3" aria-hidden="true">
+          <i style={{background:'var(--px-watch)'}}/><b>186</b><span>AQI · Delhi</span></span>
         {/* The store badges are gone from the hero. Two vendor logos under a
             product shot is an install-funnel move, and the platform question is
             already answered above by the toggle. They still live at the close,
@@ -388,9 +624,10 @@ function Hero(){return(
         <TwoPhones/>
       </div>
     </div>
-    <div className="px-marquee" aria-hidden="true"><div className="px-marquee__row">
-      {[...SIGNALS,...SIGNALS].map(([n,v,u,c],i)=><span className="px-sig" key={i}><i style={{background:c}}/>{n}<b>{v}<span style={{color:'var(--px-lo)'}}>{u}</span></b></span>)}
-    </div></div>
+    {/* The vitals marquee is gone. A loop of pills running edge to edge, clipped
+        mid-word at both sides, under a hero that has already made its point —
+        it read as an unfinished ticker rather than a design. SIGNALS, its only
+        data source, went with it — the marquee was its only consumer. */}
   </header>);}
 
 /* ═══ 02 SOURCES STRIP ═══ */
@@ -429,11 +666,11 @@ const SORT=[
     ['Ninety-eight readings','Blood pressure, weight, glucose','-47.4vw','4vh','6deg'],
     ['BP cuff, on paper','Typed once, trended after','-14.4vw','7vh','-10deg'],
     ['Your watch, counting','Ten metrics, each with its source','-41.9vw','-23vh','-5deg']]],
-  ['Period History','gyn','Day 14',[
+  ['Period history','gyn','Day 14',[
     ['Cycle log, walled off','Flow, pain and notes','-36.9vw','-9vh','9deg'],
     ['Thyroid never crossed it','Read beside your bloods','-31.4vw','-26vh','-7deg'],
     ['Last one was… March?','Every cycle dated for you','-44vw','-31vh','4deg']]],
-  ['Medical Reports','doc','7 uploaded',[
+  ['Medical reports','doc','7 uploaded',[
     ['Blood report.pdf','Lab results, scans, documents','56.9vw','17vh','8deg'],
     ['Photo of a lab slip','Photographed, read, extracted','43.9vw','-6vh','-6deg'],
     ['Scan from 2023','Trended against the newest','51.4vw','-27vh','5deg']]],
@@ -470,9 +707,9 @@ function Problem(){
     <div className="px-wrap">
       <div className={`px-sort ${live?'is-live':''} ${sorted?'is-sorted':''}`}>
         <div className="px-sort__stage">
-          <Mast k="Why this exists"/>
-          <div className="px-head px-rv in" ref={head} style={{maxWidth:'62ch',marginBottom:0}}>
-            <h2 className="px-h2">Your health data is <i>scattered.</i></h2>
+          <Mast k="Why"/>
+          <div className="px-head px-head--wide px-head--flush px-rv in" ref={head}>
+            <h2 className="px-h2">Why your health data is <i>scattered.</i></h2>
             <p className="px-lede">Reports sit in WhatsApp. Prescriptions sit in a drawer. Your watch counts without understanding. None of it is in the room when you see a doctor.</p>
           </div>
           <div className="px-sort__grid">
@@ -530,19 +767,21 @@ export function Gallery(){
               <div className="px-dev fx-card fx-glow"><img src={src} alt={t}/></div>
               <div className="px-railitem__cap"><b>{t}</b><span>{d}</span></div>
             </div>))}
-          {/* Terminal card: the store links sit at the end of the rail, where
-              someone who has just looked at all ten screens is most likely to act.
-              Nothing is covered or locked, because the section promised "see it". */}
+          {/* Terminal card: the ask sits at the end of the rail, where someone
+              who has just looked at all ten screens is most likely to act.
+              NOTE: <Gallery/> is exported but rendered nowhere — dead since the
+              screens rail moved into <Deck/>. Fixed anyway, because the two
+              store badges it held were the same lie as the live ones and the
+              next person to re-mount it would have shipped them. */}
           <div className="px-railitem px-railitem--cta" key="cta">
             <div className="px-railcta">
               <span className="px-railcta__k">That is all ten screens</span>
-              <b>Now put it on your phone.</b>
+              <b>It opens on {LAUNCH_LONG}.</b>
               <div className="px-railcta__b">
-                <a href="#get" className="px-store__b fx-glow" aria-label="Download on the App Store">{BADGE.apple}</a>
-                <a href="#get" className="px-store__b fx-glow" aria-label="Get it on Google Play">{BADGE.play}</a>
+                <a href="#get" className="px-btn px-btn--fill fx-glow px-arw">Join the waitlist</a>
               </div>
             </div>
-            <div className="px-railitem__cap"><b>Get the app</b><span>Free to start. iPhone, Apple Watch and Android.</span></div>
+            <div className="px-railitem__cap"><b>Launch day</b><span>Free to start. iPhone, Apple Watch and Android.</span></div>
           </div>
         </div>
       </div>
@@ -698,7 +937,7 @@ const DEMO=[
    the feature report forbids in §6 and again in §12. What IS real is the panel:
    three distinct analytical lenses, defined verbatim in checkInController.js:54. */
 const LENSES=[
-  ['Cardiometabolic','Waist, blood pressure, glucose, lipids and family history, on South-Asian cutoffs.'],
+  ['Cardiometabolic','Heart and blood sugar: waist, blood pressure, glucose, cholesterol and family history, on South Asian cutoffs.'],
   ['Adherence','Doses taken and missed, sleep and activity consistency, and what is quietly slipping.'],
   ['Lifestyle','Sleep, stress, mood, nutrition and load — and the one upstream change worth making.'],
 ];
@@ -721,7 +960,7 @@ export function RichiePanel({bare,solo}){
               {sel===i&&<div className="px-why"><em>Why Richie suggested this</em><p>{d.why}</p></div>}
               {sel===i&&phase==='thinking'&&<div className="px-answer">
                 <div className="px-think"><i/><i/><i/> Reading your record</div>
-                <div style={{display:'grid',gap:8,marginTop:12}}><div className="px-skeleton" style={{width:'92%'}}/><div className="px-skeleton" style={{width:'78%'}}/><div className="px-skeleton" style={{width:'85%'}}/></div></div>}
+                <div className="px-skeletons"><div className="px-skeleton" style={{width:'92%'}}/><div className="px-skeleton" style={{width:'78%'}}/><div className="px-skeleton" style={{width:'85%'}}/></div></div>}
               {sel===i&&phase==='answer'&&<div className="px-answer">
                 <div className="px-answer__who"><img src={logo} alt=""/><b>Richie</b></div><p>{d.a}</p></div>}
             </React.Fragment>))}
@@ -745,13 +984,13 @@ export function RichiePanel({bare,solo}){
             ):(<div className="px-confirm__done">
               <span className="px-confirm__tick">{log==='yes'?'✓':log==='edit'?'✎':'×'}</span>
               <span>{log==='yes'?'Saved to Symptoms · 20 Aug':log==='edit'?'Opened for editing before saving':'Discarded. Nothing was written.'}</span>
-              <button onClick={()=>setLog(null)} style={{marginLeft:'auto',background:'none',border:'none',color:'var(--px-lo)',cursor:'pointer',fontSize:12}}>undo</button>
+              <button className="px-confirm__undo" onClick={()=>setLog(null)}>undo</button>
             </div>)}
           </div>
           <div className="px-flow__link" aria-hidden="true"><span/><em>lands in your record</em><span/></div>
           <div className={`px-uif ${log==='yes'?'is-lit':''}`}>
             <div className="px-uif__hd"><b>Symptoms</b><em>{log==='yes'?'just now':'your record'}</em></div>
-            {log==='yes'&&<div className="px-uif__r" style={{background:'rgba(32,211,194,.06)'}}>
+            {log==='yes'&&<div className="px-uif__r px-uif__r--ok">
               <span className="px-uif__ico">{I.heart}</span>
               <div className="px-uif__t"><b>Knee pain · left</b><span>20 Aug · from chat</span></div>
               <span className="px-uif__v">3/10</span></div>}
@@ -767,7 +1006,7 @@ export function RichiePanel({bare,solo}){
       </div>
       {!solo&&<div className="px-quad px-rv fx-stagger">
         {[['Say it, don’t type it twice','Mention something in chat and Richie offers to log it. You approve, edit or deny. It never writes silently.'],
-          ['Three specialists, not one answer','A hard question is read by a cardiometabolic lens, an adherence lens and a lifestyle lens at once. Richie weighs them rather than averaging them.'],
+          ['Three specialists, not one answer','A hard question is read three ways at once — heart and diabetes risk, whether you are taking your medicines, and sleep, stress and food. Richie weighs them rather than averaging them.'],
           ['You can read each take','The three views are kept separately, so you can see where they disagreed before Richie settled it.'],
           ['Sources when it matters','Richie can search the literature and answer with citations you can open.']].map(([t,b],i)=>(
           <div className="px-quadcard fx-glow" key={i} style={{'--i':i}}>
@@ -895,7 +1134,7 @@ export function Family({bare,solo}){
           body="Growth on WHO percentile curves, and a vaccine calendar built from your baby’s date of birth."
           frag={<Frag icon={I.chart} title="Growth check" time="today" body="Weight 6.4 kg, 54th percentile for 4 months."/>}/></div>
         <div style={{'--i':1}}><PhotoCard srcs={STOCK.elder} icon={I.pill} title="To your parents’ later years"
-          body="Polypharmacy and fall-risk awareness, managed from your phone instead of theirs."
+          body="Too many medicines at once, and the fall risk that comes with them — watched from your phone instead of theirs."
           frag={<Frag icon={I.bell} title="Medication review" time="6 wk" body="2 of 4 medicines carry sedation warnings."/>}/></div>
         <div style={{'--i':2}}><PhotoCard srcs={STOCK.family} icon={I.spark} title="A private chat for each person"
           body="Switching person loads their record and reference ranges, then keeps the conversation about them. One Ultra plan carries five people."
@@ -960,15 +1199,14 @@ export function Wrist({bare}){return(
             <div className="px-uif__hd"><b>Blood test, 30 Jul</b><em>extracted</em></div>
             <div className="px-uif__r"><span className="px-uif__ico">{I.chart}</span>
               <div className="px-uif__t"><b>LDL cholesterol</b><span>was 128 in Feb</span></div>
-              <span className="px-uif__v" style={{color:'var(--px-attn)'}}>142 mg/dL</span></div>
+              <span className="px-uif__v px-uif__v--attn">142 mg/dL</span></div>
             <div className="px-uif__r"><span className="px-uif__ico">{I.chart}</span>
               <div className="px-uif__t"><b>Vitamin D</b><span>was 22 last year</span></div>
-              <span className="px-uif__v" style={{color:'var(--px-attn)'}}>18 ng/mL</span></div>
+              <span className="px-uif__v px-uif__v--attn">18 ng/mL</span></div>
             <div className="px-uif__r"><span className="px-uif__ico">{I.chart}</span>
               <div className="px-uif__t"><b>HbA1c</b><span>stable</span></div>
-              <span className="px-uif__v" style={{color:'var(--px-watch)'}}>5.8 %</span></div>
-            <div className="px-uif__cap">Photograph a report and every value is pulled out, explained and trended against the wrist data above.
-              <a className="px-more" href="#/deep/health-analysis">See health analysis →</a></div>
+              <span className="px-uif__v px-uif__v--watch">5.8 %</span></div>
+            <div className="px-uif__cap">Photograph a report and every value is pulled out, explained and trended against the wrist data above.</div>
           </div>
         </div>
       </div>
@@ -987,7 +1225,7 @@ export function Wrist({bare}){return(
             <div className="px-wrow"><span>Resting</span><b>56<i>bpm</i></b></div>
             <div className="px-wrow"><span>Blood oxygen</span><b>97<i>%</i></b></div>
             <div className="px-wrow"><span>Steps</span><b>8,420</b></div>
-            <div className="px-wrow" style={{borderBottom:'none'}}><span>Sleep</span><b>6h40</b></div>
+            <div className="px-wrow px-wrow--end"><span>Sleep</span><b>6h40</b></div>
             <div className="px-voice">
               <div className="px-wave">{[0,1,2,3,4].map(i=><i key={i} style={{animationDelay:`${i*.12}s`}}/>)}</div>
               <p>“Two rotis and dal?” <b style={{color:'var(--px-ok)'}}>Good to go.</b></p>
@@ -1031,7 +1269,7 @@ export function Proactive({bare}){
             <span>Works offline. The queue syncs when you’re back.</span></div></div>
         </div>
         <div>
-          <p style={{fontFamily:'var(--px-mono)',fontSize:10,letterSpacing:'.16em',textTransform:'uppercase',color:'var(--px-lo)',margin:'0 0 14px'}}>What arrives on your phone</p>
+          <p className="px-notif__k">What arrives on your phone</p>
           <div className="px-notifs fx-stagger px-rv">
             <div className="px-notif" style={{'--i':0}}><span className="px-notif__ico">{I.pill}</span>
               <div className="px-notif__b"><div className="r"><b>Atorvastatin 10 mg</b><em>9:00 PM</em></div>
@@ -1046,15 +1284,15 @@ export function Proactive({bare}){
               <div className="px-notif__b"><div className="r"><b>Papa is now covered</b><em>Mon</em></div>
               <p>Your Ultra plan now includes his profile.</p></div></div>
           </div>
-          <p style={{fontSize:13,color:'var(--px-lo)',marginTop:16,lineHeight:1.55}}>Reminder cadence follows your plan, not a generic default. Nothing is sent to sell you anything.</p>
-          <div className="px-uif" style={{marginTop:16}}>
+          <p className="px-notif__note">Reminder cadence follows your plan, not a generic default. Nothing is sent to sell you anything.</p>
+          <div className="px-uif px-uif--under">
             <div className="px-uif__hd"><b>Medicines</b><em>3 active</em></div>
             <div className="px-uif__r"><span className="px-uif__ico">{I.pill}</span>
               <div className="px-uif__t"><b>Atorvastatin 10 mg</b><span>Evening · with food</span></div>
               <span className="px-uif__v">82%</span></div>
             <div className="px-uif__r"><span className="px-uif__ico">{I.pill}</span>
               <div className="px-uif__t"><b>Dolo-650</b><span>Paracetamol 650 mg · as needed</span></div>
-              <span className="px-uif__v" style={{color:'var(--px-lo)'}}>PRN</span></div>
+              <span className="px-uif__v px-uif__v--lo">PRN</span></div>
             <div className="px-uif__cap">Indian brands resolved to their molecule, with warnings and recalls from public records.</div>
           </div>
         </div>
@@ -1202,7 +1440,7 @@ export function Trust({bare}){
           <Rows items={[
             ['Encrypted in transit and at rest','Uploads sit in access-controlled storage, and reports are never public objects.','Standard practice'],
             ['Never sold. Not to anyone.','No ad network, no data broker, no insurer feed. The business model is subscriptions and nothing else.','No exceptions'],
-            ['Sharing is per record','Every report, symptom and reading carries its own flag for whether family can see it and whether Richie may read it.','Granular consent'],
+            ['Sharing is per record','Every report, symptom and reading carries its own flag for whether family can see it and whether Richie may read it.','Per-item consent'],
             ['Leave whenever you like','Name, email, phone and date of birth are overwritten the moment you close the account. Ask us to remove the records as well and we will.','Your call'],
           ]}/>
         </div>
@@ -1277,9 +1515,18 @@ const SPEC=[
  ['Richie messages','msg'],
  ['Report uploads','upload'],
  ['Report analysis','analysis'],
- ['Health analyses','health'],
+ /* usageTracker.js:97 meters `nutricheck`, and :151 sets free 5, plus 15,
+    pro and ultra unlimited. This row used to carry 2/10/20/Unlimited — the
+    numbers for `dietaryInsights`, which is a DIFFERENT feature on :152 and is
+    hidden in both apps. The row was selling a hidden feature's allowance under
+    NutriCheck's name. shouldResetUsage (:3-8) rolls on calendar month, so
+    "a month" is the right period. */
  ['NutriCheck','nutri'],
  ['People covered','family'],
+ /* Plus is YES, and the table said No for months. checkInController.js:489
+    computes isPro as (isPro && unexpired) with no plan comparison, and auth.js:80
+    sets isPro true for plus, pro, ultra, family and family_member alike. Plus has
+    always had the three lenses; the site was underselling it. */
  ['Three-lens check-in','checkin'],
 ];
 /* Four plans. Every spec value is the matching row of backend/config/tiers.js —
@@ -1290,14 +1537,14 @@ const SPEC=[
    dietaryInsightsPerMonth are null on that tier.
    m = price per month billed monthly. y = price per month billed yearly. */
 const PLANS=[
- {n:'Free', m:0, y:0, who:'Enough to find out whether it understands you.', cta:'Start free',
-  v:['5 a session','2','No','1 a month','2 a month','Just you','No']},
- {n:'Plus', m:29.99, y:19.99, who:'One person who wants their reports read properly.', cta:'Choose Plus',
-  v:['25 a session','5','Yes','5 a month','10 a month','You and 1','No']},
- {n:'Pro', m:59.99, y:49.99, tag:'Most chosen', hero:true, who:'You and a parent or a child, with the full model list.', cta:'Choose Pro',
-  v:['50 a session','10','Yes','10 a month','20 a month','You and 2','Yes']},
- {n:'Max', m:149.99, y:119.99, who:'Nothing metered, for whoever runs health for the family.', cta:'Choose Max',
-  v:['100 a session','Unlimited','Yes','Unlimited','Unlimited','You and 10','Yes']},
+ {n:'Free', m:0, y:0, who:'Enough to find out whether it understands you.',
+  v:['5 a session','2','No','5 a month','Just you','No']},
+ {n:'Plus', m:29.99, y:19.99, who:'One person who wants their reports read properly.',
+  v:['25 a session','5','Yes','15 a month','You and 1','Yes']},
+ {n:'Pro', m:59.99, y:49.99, tag:'Most chosen', hero:true, who:'You and a parent or a child, with the full model list.',
+  v:['50 a session','10','Yes','Unlimited','You and 2','Yes']},
+ {n:'Max', m:149.99, y:119.99, who:'Nothing metered, for whoever runs health for the family.',
+  v:['100 a session','Unlimited','Yes','Unlimited','You and 10','Yes']},
 ];
 /* toLocaleString, not toFixed: the yearly total on Max is $1,439.88 and a price
    without its thousands separator reads as a typo. */
@@ -1355,13 +1602,15 @@ function BillingToggle({yearly,onChange}){
   /* Two real radios in a group, so arrow keys and screen readers work; the pill
      behind them is decorative and slides between the two. */
   return(
-  <div className="px-bill" role="radiogroup" aria-label="Billing period">
-    <div className={`px-bill__seg ${yearly?'is-year':''}`}>
+  <div className="px-bill">
+    <div className={`px-bill__seg ${yearly?'is-year':''}`} role="radiogroup" aria-label="Billing period">
       <span className="px-bill__thumb" aria-hidden="true"/>
-      <button type="button" role="radio" aria-checked={!yearly}
-        className={!yearly?'on':''} onClick={()=>onChange(false)}>Monthly</button>
-      <button type="button" role="radio" aria-checked={yearly}
-        className={yearly?'on':''} onClick={()=>onChange(true)}>Yearly</button>
+      <button type="button" role="radio" aria-checked={!yearly} tabIndex={yearly?-1:0}
+        className={!yearly?'on':''} onKeyDown={radioKeys(0,2,i=>onChange(!!i))}
+        onClick={()=>onChange(false)}>Monthly</button>
+      <button type="button" role="radio" aria-checked={yearly} tabIndex={yearly?0:-1}
+        className={yearly?'on':''} onKeyDown={radioKeys(1,2,i=>onChange(!!i))}
+        onClick={()=>onChange(true)}>Yearly</button>
     </div>
     <span className={`px-bill__save ${yearly?'is-on':''}`}>Save up to 33%</span>
   </div>);
@@ -1376,11 +1625,15 @@ function Pricing(){
           arguing that free is real, standing in front of four cards where Free
           is already the first one — the argument now lives in the lede, where it
           costs three lines instead of a section. */}
-      <Head k="Pricing" t={<>Four plans. <i>Free is not a trial.</i></>}
+      <Head k="Price" t={<>Price: four plans, and <i>Free is not a trial.</i></>}
         l="Free is not a demo. It is the app with smaller numbers, and it stays free — paying is for volume, and for reading a lab report line by line. Cancel anytime from inside the app."/>
       <BillingToggle yearly={yearly} onChange={setYearly}/>
       <div className="px-plans px-rv fx-stagger">
-        {PLANS.map((p,i)=>(<div key={p.n} className={`px-plan fx-card fx-glow ${p.hero?'px-plan--hero':''}`} style={{'--i':i}}>
+        {/* No fx-card / fx-glow. The whole card lifted six pixels and lit under
+            the cursor while the only thing you could click was the pill at the
+            bottom of it — a card that behaves like a button and is not one. The
+            pill keeps both. */}
+        {PLANS.map((p,i)=>(<div key={p.n} className={`px-plan ${p.hero?'px-plan--hero':''}`} style={{'--i':i}}>
           <div className="px-plan__hd"><b>{p.n}</b>{p.tag&&<span className="px-plan__tag">{p.tag}</span>}</div>
           <PlanPrice p={p} yearly={yearly}/>
           <div className="px-plan__for">{p.who}</div>
@@ -1389,10 +1642,17 @@ function Pricing(){
               <li key={label}><Ico n={ic} size={16}/>
                 <span>{label}</span><b className={p.v[j]==='No'?'off':''}>{p.v[j]}</b></li>))}
           </ul>
-          <a href="#get" className={`px-btn ${p.hero?'px-btn--fill':'px-btn--line'} fx-glow px-plan__cta`}>{p.cta}</a>
         </div>))}
       </div>
-      <p className="px-plans__ft">Check-ins run monthly on Free and Plus, weekly on Pro and every third day on Max.
+      {/* Was four buttons, one per card — same label, same href, same anchor,
+          differing only in fill vs line, which made the variant decorative
+          rather than semantic. Nothing is purchasable before launch, so four
+          cards cannot lead anywhere different. One action for one action. */}
+      <div className="px-plans__cta">
+        <a href="#get" className="px-btn px-btn--fill fx-glow px-arw">Join the waitlist</a>
+      </div>
+      <p className="px-plans__ft">Nothing is on sale yet — plans open when the app launches on {LAUNCH_LONG}.
+        Check-ins run monthly on Free and Plus, weekly on Pro and every third day on Max.
         Prices are per person; a Max plan covers five relatives who each keep their own account and their own record.</p>
     </div>
   </Band>);}
@@ -1453,7 +1713,7 @@ export function Proof(){
       {/* Centred. Left-aligned like every other section, the receipt sat in the
           left 60% with the right side empty — a single exhibit wants the middle
           of the page, not the reading column. */}
-      <Head c k="Grounded" t={<>Richie searches the research <i>before it answers.</i></>}
+      <Head c k="How" t={<>How it answers — the research comes <i>first.</i></>}
         l="It is not allowed to answer a general health question from memory. Your question is rewritten into search terms, peer-reviewed literature and the web are searched, and the reply is written only from what came back — up to eight sources, each named under the answer."/>
       {/* `in` is set here, not left to the page-wide useReveal observer. That one
           is re-created on every render of the parent and never got to this block,
@@ -1471,13 +1731,12 @@ export function Proof(){
         <div className="px-pf__cols">
           <div className="px-pf__col">
             <button type="button" className={`px-pf__trace ${open?'is-open':''}`}
-              aria-expanded={open} onClick={()=>setOpen(o=>!o)}>
+              aria-expanded={open} aria-controls="px-pf-body" onClick={()=>setOpen(o=>!o)}>
               <Ico n="analysis" size={14}/>
               <span>Checked {n} sources</span>
               <Ico n="chev" size={10} cls="px-pf__tchev"/>
             </button>
-            {open&&(
-            <div className="px-pf__body">
+            <div className="px-pf__body" id="px-pf-body" hidden={!open}>
               <ul className="px-pf__tools">
                 {PROOF.tools.map((t,i)=>(
                   <li key={t} style={{'--i':i}}><Ico n="check" size={13}/>{t}</li>))}
@@ -1487,7 +1746,7 @@ export function Proof(){
                 {PROOF.sources.map((t,i)=>(<li key={t} style={{'--i':i}}>{t}</li>))}
                 <li className="px-pf__more" style={{'--i':shown}}>and {n-shown} more</li>
               </ol>
-            </div>)}
+            </div>
           </div>
 
           <div className="px-pf__col">
@@ -1518,56 +1777,305 @@ export function Proof(){
      only inside a news-feed seed script. Replaced with what a dependent record
      actually does. */
 const FAQ=[
- ['General','Is Richie a doctor?','No, and it says so itself. It organises and explains your health so a real consultation starts from your whole story. If your doctor disagrees with it, follow your doctor.'],
- ['General','What are the three lenses?','A hard question is read three ways at once — for cardiometabolic risk, for adherence and habits, and for lifestyle. Richie weighs the three rather than averaging them, and you can read each take.'],
- ['Devices','Do I need an Apple Watch?','No. Everything works without one. If you have a Watch, or an Android wearable through Health Connect, those readings fold in automatically and the reasoning gets sharper.'],
- ['Family','How does one plan cover ten people?','Ultra carries five dependent profiles you manage plus five relatives who each get their own account. Every person keeps a separate record, and sharing stays per-record and opt-in.'],
- ['Family','Can I add my child?','Yes. A dependent gets their own record, their own paediatric reference ranges and their own private chat, and Richie answers from their profile rather than yours.'],
- ['Privacy','Is my chat used to train models?','The contents of your reports and conversations are not training data. Aggregate, de-identified usage data is on when you sign up, and one tap in Profile turns it off.']];
+ ['Is Richie a doctor?',
+  'No, and it says so itself. It organises and explains your health so that a real consultation starts from your whole story instead of from scratch. If your doctor disagrees with it, follow your doctor.'],
+ ['Can I choose which AI reads my record?',
+  /* tiers.js — canSelectModel is true on every tier including free; the five in
+     allowedModels are open to everyone and proOnlyModels lifts at pro. This
+     describes the picker and stops there: config/ai.js says in writing not to
+     sell "GPT vs Claude vs Gemini" as different answers. */
+  'Yes, on every plan including Free. There is a model picker in the app: Free and Plus choose between five, Pro and above add GPT‑5.3 and Claude 4.5. Whichever you pick is reading the same record — the picker changes the mind, not what it knows about you.'],
+ ['Where do the answers come from?',
+  'Richie is not allowed to answer a general health question from memory. Your question is turned into search terms, peer-reviewed research and the web are searched, and the reply is written only from what comes back — up to eight sources, each named under the answer.'],
+ ['What are the three lenses?',
+  'A hard question is read three ways at once — one for heart and diabetes risk, one for whether you are actually taking your medicines, one for sleep, stress and food. Richie weighs the three rather than averaging them, and you can read each take.'],
+ ['Can I log my periods?',
+  /* PeriodLog.js — startDate, endDate, flowIntensity, painLevel, notes, plus
+     shareWithFamily and includeInChat per entry. ai.js:276-278 puts the last six
+     into every chat and analysis. There is no prediction code anywhere in the
+     backend, so nothing here promises one. */
+  'Yes. Dates, flow, pain and any notes — from the tracker or in a sentence, mid-conversation. Every entry has its own switches for whether family can see it and whether Richie may read it, and your last six cycles go into every chat and every analysis. That is the point: a period read next to your thyroid panel, not in a separate app.'],
+ ['Do I have to type everything in?',
+  'No. Photograph a report and it is read for you — values, dates, units and the name the lab actually printed. "Creatinine, Serum" and "Creatinine" become the same line on the same trend.'],
+ ['Do I need an Apple Watch?',
+  'No. Everything works without one. If you have a Watch, or an Android wearable through Health Connect, those readings fold in automatically and the reasoning gets sharper.'],
+ ['Will it understand Indian medicine names?',
+  'Yes. Crocin and Dolo are the same molecule and your record knows both. Reference ranges follow the names Indian labs actually print — SGPT rather than ALT — and Rantac is flagged as withdrawn.'],
+ ['Can I add my child?',
+  'Yes. A dependent gets their own record, their own paediatric reference ranges and their own private chat, and Richie answers from their profile rather than yours.'],
+ ['How does one plan cover ten people?',
+  'Max carries five dependent profiles you manage plus five relatives who each get their own account. Every person keeps a separate record, and sharing stays per-record and opt-in.'],
+ ['Can I share any of this with my doctor?',
+  'Yes. You can share a dated summary of your history with a doctor you connect to. Nothing is shared by default — it is per-record and you turn it on.'],
+ ['Is Free actually free?',
+  /* tiers.js free: messagesPerSession 5, reportsPerPeriod 2,
+     healthAnalysisPerMonth 1, checkIn monthly, maxDependents 0. */
+  'Yes, and it stays free. Five messages a session, two report uploads, one health analysis a month and a monthly check-in, for you. Paying buys volume and line-by-line report reading — not a different app.'],
+ ['Is my chat used to train models?',
+  'The contents of your reports and conversations are not training data. Aggregate, de-identified usage data is on when you sign up, and one tap in Profile turns it off.'],
+ ['Can I delete my account?',
+  'Yes, from Profile, whenever you want. Your sign-in details are removed and the account cannot be used again.'],
+];
+
+/* THE LEDGER. The category pills went: five filters over six questions, on a
+   section whose whole job is to be scanned in one pass. There are fourteen now
+   and they still do not need filtering — they need to be readable in order.
+
+   This is the site's hairline row again (.px-spine li, .px-ledger li, and the
+   Who column): a numeral in a fixed left column, the question in the next, a
+   sign at the end, a rule over each. The answer opens into the question's own
+   column so the numerals stay a clean vertical line down the page.
+
+   The open/close is grid-template-rows 0fr -> 1fr with visibility, which is the
+   mechanism already proven on this site — max-height silently clips any answer
+   longer than the tallest you happened to test, and overflow:hidden alone hides
+   nothing from a screen reader. */
 export function Faq(){
-  const CATS=['All','General','Devices','Family','Privacy'];
-  const[cat,setCat]=useState('All'),[open,setOpen]=useState(0);
-  const list=FAQ.filter(f=>cat==='All'||f[0]===cat);
+  const[open,setOpen]=useState(0);
+  /* Reveal in React state, not useReveal()'s classList.add. This component
+     re-renders on every open/close, and holding view state on a class that
+     React also owns is how rows end up stuck at opacity 0 — it has happened on
+     this codebase before. */
+  const[seen,setSeen]=useState(false); const ref=useRef(null);
+  useEffect(()=>{const el=ref.current; if(!el) return;
+    const io=new IntersectionObserver(es=>{ if(es[0].isIntersecting){ setSeen(true); io.disconnect(); } },
+      {threshold:.08});
+    io.observe(el); return()=>io.disconnect();},[]);
   return(
   <Band id="s-faq">
     <div className="px-wrap">
-      <Head k="Before you trust it" t={<>The questions <i>we get asked.</i></>}
-        l="Answered from the code, including the two places where the honest answer is not the flattering one."/>
-      <div className="px-faqpills px-rv">{CATS.map(c=>(
-        <button key={c} className={`px-faqpill ${cat===c?'on':''}`} onClick={()=>{setCat(c);setOpen(0);}}>{c}</button>))}
-      </div>
-      <div className="px-faq px-rv">{list.map(([,q,a],i)=>(
-        <div className={`px-q ${open===i?'open':''}`} key={q}>
-          <button onClick={()=>setOpen(open===i?-1:i)} aria-expanded={open===i}>{q}<span className="px-q__sign">+</span></button>
-          <div className="px-q__a"><p>{a}</p></div>
+      <Head k="FAQs" t={<>FAQs — the questions <i>we get asked.</i></>}
+        l="Answered from the code, including the places where the honest answer is not the flattering one."/>
+      {/* TWO COLUMNS, and they are real columns rather than a two-up grid: a
+          grid would put rows 01/02 side by side and opening either would push
+          BOTH down. Splitting the array means the halves move independently.
+          DOM order is still 01…14, so reading order and tab order match. */}
+      <div className={`px-fq ${seen?'is-in':''}`} ref={ref}>
+        {[FAQ.slice(0,7),FAQ.slice(7)].map((col,c)=>(
+        <div className="px-fq__col" key={c}>
+        {col.map(([q,a],j)=>{
+          const i=c*7+j;
+          const on=open===i;
+          return(
+          <div className={`px-fq__row ${on?'is-open':''}`} key={q} style={{'--i':i}}>
+            <button type="button" className="px-fq__q" id={`px-fq-b-${i}`}
+              aria-controls={`px-fq-a-${i}`} aria-expanded={on}
+              onClick={()=>setOpen(on?-1:i)}>
+              <span className="px-fq__n" aria-hidden="true">{String(i+1).padStart(2,'0')}</span>
+              <span className="px-fq__t">{q}</span>
+              <span className="px-fq__x" aria-hidden="true"/>
+            </button>
+            <div className="px-fq__a" id={`px-fq-a-${i}`} role="region" aria-labelledby={`px-fq-b-${i}`}>
+              <div className="px-fq__inner"><p>{a}</p></div>
+            </div>
+          </div>);})}
         </div>))}
       </div>
     </div>
   </Band>);}
+
+/* ═══ WAITLIST ════════════════════════════════════════════════════════════════
+   The app is not out. It ships 1 October 2026, so every "get it" affordance on
+   the site pointed at nothing: two store badges that linked to their own anchor,
+   a QR panel drawing procedural noise, and a footer form that called
+   preventDefault() and posted nowhere. All of that is replaced by ONE component,
+   rendered exactly twice — full in the closing band (the target of every #get),
+   compact in the footer, which is the only block that appears on every route.
+
+   Deliberately not a third instance: the sticky corner prompt scrolls to this
+   one and focuses it rather than carrying its own input, because three live
+   copies of the same field on one page is how a form ends up with three
+   different behaviours. */
+export const LAUNCH_ISO='2026-10-01T00:00:00+05:30';   /* IST — the team ships from India */
+export const LAUNCH_LONG='1 October 2026';
+export const LAUNCH_SHORT='1 Oct 2026';
+
+/* First network call the site has ever made. The origin is the deployed API
+   (ios/.../APIConfig.swift agrees); REACT_APP_API_URL overrides it for local work. */
+const WAITLIST_API=(process.env.REACT_APP_API_URL||'https://richhealthbackend.vercel.app').replace(/\/+$/,'')+'/api/waitlist';
+
+function daysToLaunch(){
+  return Math.ceil((new Date(LAUNCH_ISO).getTime()-Date.now())/86400000);
+}
+
+/* Deliberately loose. The server validates properly (express-validator .isEmail);
+   this only catches the obvious typo before we spend a round trip on it. */
+const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+/* Same words for "joined" and "already on the list". The endpoint tells them
+   apart — useful in a log — but the page must not, because anyone can type
+   anyone's address into it and a different sentence would answer the question
+   "does this person have an account here". */
+const JOINED_COPY='You are on the list.';
+
+/* Read off the ISO string, never off a Date: new Date(LAUNCH_ISO).getDate() in a
+   browser west of IST returns 30 SEP for the same instant, and the plate would
+   quietly print a different date than the sentence above it. Splitting the
+   string is timezone-proof and keeps one source of truth for the day. */
+const MON=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+const[L_Y,L_M,L_D]=LAUNCH_ISO.slice(0,10).split('-');
+
+function LaunchPlate(){
+  const d=daysToLaunch();
+  return(
+    <div className="px-wl__plate">
+      <span className="px-wl__plate-k">Launching</span>
+      <b className="px-wl__plate-d"><span>{L_D}</span><i aria-hidden="true"/><span>{MON[Number(L_M)-1]}</span><i aria-hidden="true"/><span>{L_Y}</span></b>
+      {d>1&&<span className="px-wl__plate-c">{d} days to go</span>}
+      {d===1&&<span className="px-wl__plate-c">Tomorrow</span>}
+      {d===0&&<span className="px-wl__plate-c">Today</span>}
+    </div>);
+}
+
+export function Waitlist({source='closer',compact=false}){
+  const[email,setEmail]=useState('');
+  /* idle | pending | joined | already | invalid | error — held in React state,
+     never on the node's className, which React owns and would wipe. */
+  const[state,setState]=useState('idle');
+  const[note,setNote]=useState('');
+  const box=useRef(null), field=useRef(null);
+  const inputId=`wl-${source}`, noteId=`wl-${source}-note`;
+  const done=state==='joined'||state==='already';
+  const bad=state==='invalid'||state==='error';
+
+  /* The sticky corner prompt asks for this field rather than duplicating it. */
+  useEffect(()=>{
+    if(source!=='closer') return undefined;
+    let t=0;
+    const on=()=>{
+      const slow=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+      if(box.current) box.current.scrollIntoView({block:'center',behavior:slow?'auto':'smooth'});
+      window.clearTimeout(t);
+      t=window.setTimeout(()=>{ const el=field.current;
+        if(!el) return;
+        try{ el.focus({preventScroll:true}); }catch(err){ el.focus(); }
+      },slow?0:420);
+    };
+    window.addEventListener('rh:waitlist',on);
+    return()=>{ window.clearTimeout(t); window.removeEventListener('rh:waitlist',on); };
+  },[source]);
+
+  async function submit(e){
+    e.preventDefault();
+    if(state==='pending') return;
+    const v=email.trim();
+    if(!EMAIL_RE.test(v)){ setState('invalid'); setNote('Please enter a valid email address.'); return; }
+    setState('pending'); setNote('');
+    try{
+      const r=await fetch(WAITLIST_API,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email:v,source}),
+      });
+      let d=null; try{ d=await r.json(); }catch(err){ d=null; }
+      if(r.status===429){ setState('error');
+        setNote('Too many attempts from this connection. Please try again a little later.'); return; }
+      if(r.status===400){ setState('invalid'); setNote('Please enter a valid email address.'); return; }
+      if(!r.ok||!d||d.ok!==true){ setState('error');
+        setNote('We could not save that just now. Please try again in a moment.'); return; }
+      /* The typed value is never cleared — after any failure it is still in the box. */
+      setState(d.status==='already'?'already':'joined'); setNote('');
+    }catch(err){
+      setState('error');
+      setNote('We could not reach the server. Check your connection and try again.');
+    }
+  }
+
+  return(
+    <div className={`px-wl${compact?' px-wl--compact':''}`} ref={box}>
+      {compact&&<p className="px-wl__k">Launching {LAUNCH_LONG}</p>}
+      {!compact&&<LaunchPlate/>}
+      {done?(
+        <div className="px-wl__done" role="status" aria-live="polite">
+          <span className="px-wl__tick" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"
+              strokeLinecap="round" strokeLinejoin="round"><path d="M4 12.5l5.2 5.2L20 7"/></svg>
+          </span>
+          <span className="px-wl__done-t">
+            <b>{JOINED_COPY}</b>
+            <span>We will email {email} when RichHealth opens on {LAUNCH_LONG}. One email, nothing else.</span>
+          </span>
+        </div>
+      ):(
+        <form className="px-wl__form" onSubmit={submit} noValidate>
+          <label className="px-wl__lbl" htmlFor={inputId}>Email address</label>
+          <div className="px-wl__row">
+            <input id={inputId} ref={field} className="px-wl__in" type="email" name="email"
+              value={email}
+              onChange={e=>{ setEmail(e.target.value); if(bad){ setState('idle'); setNote(''); } }}
+              placeholder="you@example.com" autoComplete="email" inputMode="email"
+              spellCheck="false" maxLength={254}
+              aria-invalid={state==='invalid'} aria-describedby={noteId}/>
+            {/* aria-disabled, not disabled: a real `disabled` on the control the
+                keyboard user just activated throws focus to <body> mid-request.
+                The double-submit guard is the first line of submit(). */}
+            <button className="px-btn px-btn--fill fx-glow px-wl__go" type="submit"
+              aria-disabled={state==='pending'} aria-busy={state==='pending'}>
+              {state==='pending'?'Joining…':(compact?'Join':'Join the waitlist')}
+            </button>
+          </div>
+          <p id={noteId} className={`px-wl__note${bad?' px-wl__note--bad':''}`} role="status" aria-live="polite">
+            {note||'One email on launch day. No newsletter, and the address is never shared.'}
+          </p>
+        </form>
+      )}
+    </div>);
+}
+
+/* ═══ THE ASK, ON A PAGE THAT IS NOT THE HOME PAGE ════════════════════════════
+   Eleven feature pages, plus quality, security and about, ended with no primary
+   action at all: the only route to the waitlist from any of them was the nav or
+   the footer.
+
+   A LINK, NOT A SECOND FORM. <Waitlist compact/> already renders on every one of
+   these routes — it is in <Foot/>, directly below this — so a form here would be
+   the third live copy of one field on one page, which is exactly what the
+   Waitlist comment above warns against. This points at the real field in the
+   closing band, where the launch plate and the full copy are. */
+export function PageCta({note}){return(
+  <div className="px-pcta">
+    <p className="px-pcta__t">{note||<>RichHealth opens on {LAUNCH_LONG}. Free to start, on iPhone, Apple&nbsp;Watch and Android.</>}</p>
+    <a className="px-btn px-btn--fill fx-glow px-arw" href="#/#s-get">Join the waitlist</a>
+  </div>);}
 
 /* ═══ CLOSER + FOOTER ═══ */
 function Closer(){return(
   <Band alt id="s-get">
     <div className="px-wrap px-closer">
       <div className="px-rv">
-        <Mast k="Start"/>
-        <h2 className="px-h2" style={{maxWidth:'20ch',marginInline:'auto'}}>Start with one report. <i>Add the rest later.</i></h2>
-        <p className="px-lede" style={{marginInline:'auto',textAlign:'center'}}>Free to set up, and it gets sharper with every thing you add.</p>
-        {/* the only place the badges appear now, and the target of every #get */}
-        <div className="px-store px-closer__cta" id="get">
-          <a href="#get" className="px-store__b fx-glow" aria-label="Download on the App Store">{BADGE.apple}</a>
-          <a href="#get" className="px-store__b fx-glow" aria-label="Get it on Google Play">{BADGE.play}</a>
+        <Mast k="Launch"/>
+        {/* NBSP between the day and the month: the h2 wraps at 20ch and broke
+            "1 / October" across two lines at both 1440 and 390. */}
+        <h2 className="px-h2">RichHealth opens on 1&nbsp;October. <i>Be on the list.</i></h2>
+        {/* The date is already in the h2 above and in the plate below. Saying it
+            a third time here read as three dates rather than one, so the lede
+            carries the platforms and the promise instead. */}
+        <p className="px-lede">Not out yet — iPhone, Apple Watch and Android, free to start. Leave your email and we will send you the link that morning.</p>
+        {/* The target of every #get. The two store badges that used to sit here
+            linked to this same anchor — a download button for something nobody
+            can download, and Apple's own identity guidelines only allow that
+            badge when it opens the App Store listing. The platform promise they
+            were making is now made in words, which can be true today. */}
+        <div className="px-closer__cta" id="get">
+          <Waitlist source="closer"/>
         </div>
       </div>
     </div>
   </Band>);}
 
-export function Foot(){return(
+export function Foot(){
+  /* The closing band renders the only form on the site. Where it is on this page
+     the footer adds nothing — and the same is true of the page-end CTA every
+     feature/trust page carries, which also sits directly above it. Where neither
+     is present the footer IS the ask. */
+  const[hasForm,setHasForm]=useState(false);
+  useEffect(()=>{ setHasForm(!!document.querySelector('#get, .px-pcta')); },[]);
+  return(
   <footer className="px-foot">
     <div className="px-wrap">
       <div className="px-foot__top">
         <div>
-          <a className="px-logo" href="#/"><img src={logo} alt=""/><span>RichHealth<i style={{fontStyle:'normal',color:'var(--px-teal)'}}>.ai</i></span></a>
+          <Logo/>
           <p className="px-foot__tag">One health record for everyone you look after. iPhone, Apple Watch and Android.</p>
           {/* Ported off the pre-split footer, which carried a social row AND the
               two store badges; the new footer had neither. Its own column links
@@ -1583,17 +2091,19 @@ export function Foot(){return(
             <a href="https://youtube.com/@richhealthai" target="_blank" rel="noopener noreferrer" aria-label="RichHealth on YouTube"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 00-1.94 2A29 29 0 001 11.75a29 29 0 00.46 5.33A2.78 2.78 0 003.4 19.1c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 001.94-2 29 29 0 00.46-5.25 29 29 0 00-.46-5.43z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg></a>
             <a href="mailto:hello@richhealth.app" aria-label="Email RichHealth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg></a>
           </div>
-          <div className="px-foot__stores">
-            <a href="#get" aria-label="Download on the App Store"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg><span>App Store</span></a>
-            <a href="#get" aria-label="Get it on Google Play"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M3.609 1.814L13.792 12 3.609 22.186a.996.996 0 01-.609-.92V2.734a.996.996 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 1.329c.576.333.576 1.165 0 1.498L17.698 13.663l-2.499-2.5 2.499-2.655zM5.864 2.658l10.937 6.333-2.302 2.302L5.864 2.658z"/></svg><span>Google Play</span></a>
-          </div>
-          <form className="px-foot__mail" onSubmit={e=>e.preventDefault()}>
-            <input type="email" placeholder="Email for launch updates" aria-label="Email"/>
-            <button className="px-btn px-btn--fill" type="submit" style={{padding:'11px 18px',fontSize:13.5}}>Notify me</button>
-          </form>
+          {/* A LINK, NOT A SECOND FORM. On the home page this put a second
+              <form>, a second "Email address" label and a second submit button
+              one section below the first — the same field asked for twice on one
+              screen. There is now exactly one form on the site, in the closing
+              band, and every other surface points at it. */}
+          <p className="px-foot__k">Launching {LAUNCH_LONG}</p>
+          {/* ...and not even the link on the one page that carries the form: the
+              closing band sits directly above the footer, so it would be the
+              same ask twice inside one screen. */}
+          {!hasForm&&<a href="#/#s-get" className="px-btn px-btn--line fx-glow px-arw px-foot__cta">Join the waitlist</a>}
         </div>
         <div className="px-foot__cols">
-          <div className="px-foot__col"><b>Product</b><a href="#/#s-does">What it does</a><a href="#/#s-intake">Full context</a><a href="#/#s-pricing">Pricing</a><a href="#/deep/health-analysis">Health analysis</a></div>
+          <div className="px-foot__col"><b>Product</b><a href="#/#s-does">What it holds</a><a href="#/#s-intake">Full context</a><a href="#/#s-pricing">Pricing</a></div>
           <div className="px-foot__col"><b>Explore</b><a href="#/deep/india">Built for India</a><a href="#/deep/privacy">Privacy</a><a href="#/deep/cycle">Cycle intelligence</a><a href="#/deep/doctors">For doctors</a><a href="#/deep/evidence">Our sources</a></div>
           <div className="px-foot__col"><b>Company</b><a href="#/about">About</a><a href="#/investors">Investors</a><a href="#/careers">Careers</a><a href="mailto:doctors@richhealth.app">Doctors</a></div>
           <div className="px-foot__col"><b>Trust</b><a href="#/quality">Medical quality</a><a href="#/security">Security and data</a><a href="#/legal/privacy-policy">Privacy policy</a><a href="#/legal/terms">Terms</a><a href="#/legal/medical-disclaimer">Disclaimer</a></div>
@@ -1637,9 +2147,9 @@ export function Consent({onChange}){
     applyConsent(v); setShow(false); onChange&&onChange(v); };
   if(!show) return null;
   return(
-  <div className="px-cc" role="dialog" aria-live="polite" aria-label="Cookies">
+  <div className="px-cc" role="dialog" aria-live="polite" aria-labelledby="px-cc-t">
     <div className="px-cc__t">
-      <b>Cookies</b>
+      <b id="px-cc-t">Cookies</b>
       <p>Essential storage keeps the site working. With your consent we would also
         measure which pages get read — aggregated, no identifier, and never joined
         to a health record.</p>
@@ -1648,31 +2158,52 @@ export function Consent({onChange}){
         as accepting (GDPR art.7(3), and the reason CNIL has fined sites that make
         "reject" the quieter button), so neither is the filled one. */}
     <div className="px-cc__a">
-      <button className="px-btn px-btn--line" onClick={()=>decide('necessary')}>Only necessary</button>
-      <button className="px-btn px-btn--line" onClick={()=>decide('all')}>Accept all</button>
-      <a className="px-cc__l" href="#/legal/privacy-policy">Privacy Policy</a>
+      <button type="button" className="px-btn px-btn--line fx-glow" onClick={()=>decide('necessary')}>Only necessary</button>
+      <button type="button" className="px-btn px-btn--line fx-glow" onClick={()=>decide('all')}>Accept all</button>
+      <a className="px-cc__l" href="#/legal/privacy-policy">Privacy policy</a>
     </div>
   </div>);}
 
-function QR(){
+/* ── sticky launch prompt (desktop) ───────────────────────────────────────────
+   This slot used to hold "Scan to download" over a 21×21 grid filled by
+   ((x*7 + y*11 + (x*y)%5) % 3 === 0). That is not a QR code — no format info, no
+   timing pattern, no error correction — so a phone camera would have found
+   nothing, on the one element whose entire promise is that it scans. It is gone,
+   along with its CSS (which was also the site's last backdrop-filter).
+
+   Something still earns the slot: the whole reason for its scroll trigger — a
+   reader who has gone past pricing is the one worth asking — survives the launch
+   date changing. What it offers changes. It carries the date and the count, and
+   its button hands the reader to the real field in the closing band instead of
+   being a fourth place to type an address. */
+function LaunchPill(){
   const[show,setShow]=useState(true);
   const[past,setPast]=useState(false);
   useEffect(()=>{const on=()=>{const p=document.getElementById('s-pricing');
-      setPast(p ? p.getBoundingClientRect().top < window.innerHeight*.6
-                : window.scrollY > window.innerHeight*6);};
+      const after=p ? p.getBoundingClientRect().top < window.innerHeight*.6
+                    : window.scrollY > window.innerHeight*6;
+      /* …but stand down over the footer. The QR used to sit on top of the line
+         that tells you to call your local emergency number, which is the one
+         piece of text on this page that must never be covered — and the footer
+         carries the same waitlist field anyway. */
+      const f=document.querySelector('.px-foot');
+      const atFoot=f ? f.getBoundingClientRect().top < window.innerHeight : false;
+      setPast(after&&!atFoot);};
     window.addEventListener('scroll',on,{passive:true});on();
     return()=>window.removeEventListener('scroll',on);},[]);
-  if(!show||!past)return null;
-  return(<div className="px-qr">
-    <div className="px-qr__code"><svg viewBox="0 0 21 21" shapeRendering="crispEdges">
-      {Array.from({length:21}).map((_,y)=>Array.from({length:21}).map((_,x)=>{
-        const corner=(x<7&&y<7)||(x>13&&y<7)||(x<7&&y>13);
-        const ring=corner&&((x%14===0||x%14===6||y%14===0||y%14===6)||(x>1&&x<5&&y>1&&y<5)||(x>15&&x<19&&y>1&&y<5)||(x>1&&x<5&&y>15&&y<19));
-        const on=corner?ring:((x*7+y*11+((x*y)%5))%3===0);
-        return on?<rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill="#07090A"/>:null;}))}
-    </svg></div>
-    <div><b>Scan to download</b><span>iPhone and Android</span></div>
-    <button className="px-qr__x" onClick={()=>setShow(false)} aria-label="Dismiss">×</button>
+  const d=daysToLaunch();
+  if(!show||!past||d<0)return null;
+  return(<div className="px-launch">
+    <span className="px-launch__n"><b>{d}</b><em>{d===1?'day':'days'}</em></span>
+    {/* No button. From the pricing section down, the nav is already carrying a
+        "Join the waitlist" — a floating second copy of it made two identical
+        asks on one screen. This states the date and gets out of the way; the
+        nav does the asking. */}
+    <span className="px-launch__t">
+      <b>Launching {LAUNCH_SHORT}</b>
+      <em>Free to start</em>
+    </span>
+    <button className="px-launch__x" type="button" onClick={()=>setShow(false)} aria-label="Dismiss">×</button>
   </div>);}
 
 /* ═══ WHAT IT DOES — bento overview, then a three-card deep dive ══════════════
@@ -1700,7 +2231,10 @@ function QR(){
    Nobody chooses a health app because it accepts HEIC. What matters is what ends
    up in one place, so the column is now the DOMAINS themselves.
 
-   Every name here is the app's own. The first six are the Health Hub sections in
+   Every name here is the app's own, set in the site's sentence case rather than
+   the app's title case (the site's own "Air quality" and "Symptoms" set that
+   rule, and mixing the two inside one list looked like an oversight). The
+   wording is untouched. The first six are the Health Hub sections in
    document order from res/layout/fragment_health_data.xml, cross-checked against
    HealthHubView.swift — Symptoms, Measurements, Period History under DAILY
    TRACKING; Medical Reports, Medications, Family Health under HEALTH RECORDS —
@@ -1722,10 +2256,10 @@ function QR(){
 const HANDIT=[
  ['sick','Symptoms','Log discomfort, intensity and patterns'],
  ['ruler','Measurements','Blood pressure, weight, glucose & more'],
- ['doc','Medical Reports','Lab results, scans and clinical documents'],
+ ['doc','Medical reports','Lab results, scans and clinical documents'],
  ['pill','Medications','Active prescriptions, dosage and history'],
- ['gyn','Period History','Flow, pain and dates, beside your bloods'],
- ['famgrp','Family Health','Genetic history and shared family records'],
+ ['gyn','Period history','Flow, pain and dates, beside your bloods'],
+ ['famgrp','Family health','Genetic history and shared family records'],
  ['health','Apple Health & Health Connect','Heart rate, sleep, steps and SpO₂'],
  ['air','Air quality','The AQI where you actually are'],
 ];
@@ -1764,8 +2298,11 @@ export function Intake(){return(
           the room — it was about file handling. The claim worth making is that
           everything about you sits in one place and you decide which mind reads
           it. "Full context" is the term for that pairing. */}
-      <Head k="Full context" t={<>Your whole record, <i>read by the model you choose.</i></>}
-        l="Symptoms, reports, medicines, cycles, the history you inherited, your watch, even the air where you are — one dated record. You pick which model reads it, a Pro check-in puts three lenses on it, and anything general gets looked up rather than remembered."/>
+      {/* The eyebrow now says "Which AI reads it", so the headline saying "read
+          by the AI you pick" was the same sentence twice. The headline takes the
+          record, the eyebrow takes the reader, and between them they say both. */}
+      <Head k="Which" t={<>Which AI reads your record? <i>You choose.</i></>}
+        l="Everything about you sits in one dated record — symptoms, reports, medicines, cycles, what runs in your family, your watch, even the air where you are. A Pro check-in reads it three ways at once, and anything general is looked up rather than remembered."/>
 
       {/* THREE STAGES, THREE COLUMNS. It was two columns with the record hung off
           the bottom of the second, and that shape could not be saved: the right
@@ -1930,9 +2467,62 @@ export function Intake(){return(
                  (controllers/healthAnalysisController.js:444-452)
      scale    -> strong_no | no | moderate | yes | strong_yes
                  (utils/prompts.js:48, consumed at homeScreenController.js:87) */
+/* THIS SECTION IS THE APP'S SERVICES TAB, and it had drifted badly from it.
+   ServicesHomeView.swift renders, in order: Your Briefing, Health Analysis,
+   Apple Health, Health Check-In, Daily Advisory, Air Quality, Dietary Insights,
+   NutriCheck, Health Feed, Workouts, My Doctor. Android matches
+   (HomeFragment.java, HealthAnalysisActivity.java).
+
+   Two cards here were not services at all — Indian medicine names is a property
+   of the medicines record, and per-record privacy is a setting. Both are gone
+   from this section; both still have their deep pages under Explore.
+
+   IN: Your briefing and Workouts, two things the app ships and the site had
+   never mentioned. Apple Health and Air Quality stay OUT of this section on
+   purpose — they are inputs, and they are already cards in "What it holds".
+
+   DIETARY INSIGHTS IS NOT HERE, and must not be added back. It is commented out
+   of ServicesHomeView.swift:54, out of ProfileView.swift:1091, and out of
+   Android's UsageBottomSheet.java:46, all three with the same note: "hidden for
+   now (product decision)". The service file and the endpoint still exist, which
+   is exactly why reading the service layer alone is not enough — what ships is
+   what the view actually renders.
+
+   HEALTH ANALYSIS STAYS, and its description is correct. Six section runners —
+   symptoms, medications, measurements, reports, genetics, diagnostics — go into
+   one Promise.all at healthAnalysisController.js:445, and an overall is written
+   from the six afterwards. ANALYSIS_TIMEOUT_MS is two minutes, which is the
+   "up to 2 minutes" the iOS sheet shows.
+
+   STILL NOT SHOWN, and it would need a slot: Health Feed.
+
+   HEALTH ANALYSIS IS OUT of this section by product decision, even though
+   healthAnalysisController.js, healthAnalysisRoutes.js, HealthAnalysisActivity
+   (Android) and HealthAnalysisSheetView (iOS) are all still live. It is STILL
+   referenced in eight other places on this site — the pricing row, the Explore
+   item, the deep page, the footer link, the reel CTA and the Deck link — and
+   those have not been touched.
+
+   AUDITED AGAINST THE BACKEND, AND TWO CARDS CHANGED.
+
+   OUT: "Apple Watch sync". The watch feed is now a card in "What it holds" two
+   sections up, with the same sentence — ten readings, each kept with its device
+   and its minute. It is an INPUT to the record, not something the app does with
+   the record, so it belongs there and not here, and it was being said twice.
+
+   IN: per-record privacy. Every entry carries its own flags for whether family
+   may see it and whether Richie may read it (PeriodLog.js:45-52 shareWithFamily
+   and includeInChat, and the same pair across the other record types). That is
+   something the product does with your record, it is the only one of these six
+   that is a decision you make rather than an answer you get, and it had no home
+   on this page at all — it was buried on a deep page nothing linked to.
+
+   The ids are grid-area names, and three of them had drifted from what they
+   hold: `watch` was Indian medicine names, `india` was the Watch card, `priv`
+   was Doctor sharing. Renamed here and in the three grid-template-areas maps. */
 const BENTO=[
- {id:'ai', k:'flagship', t:'Health check-ins',
-  d:'Richie reads the whole record first, then spends its questions on the gaps that would actually move a prediction \u2014 and tells you what is still missing.',
+ {id:'checkins', k:'flagship', t:'Health check-ins',
+  d:'Richie reads the whole record first, then spends its questions on the gaps that would actually move a prediction — and tells you what is still missing.',
   img:sClinic,
   /* Verified against the code, not the screen:
      - buildHealthContext (services/ai.js:248-499) is what "reads first" means —
@@ -1950,29 +2540,56 @@ const BENTO=[
     ['doc','Reads your record first', null,
       ['Reports','Medicines','Symptoms','Measurements','Watch data','Your last answers']],
     ['analysis','Ranks what is missing','by how much each gap would move your risk picture',
-      [['Waist circumference','strongest anthropometric for South-Asian cardiometabolic risk'],
+      [['Waist circumference','the single best body measurement for heart and diabetes risk in South Asians'],
        ['Blood pressure','hypertension screen + CVD risk']]],
     ['cognition','Then spends the check-in there',
-      '\u201Ca question is only worth asking if its answer would change a health recommendation, a risk estimate, or what to screen next\u201D', null],
+      '“a question is only worth asking if its answer would change a health recommendation, a risk estimate, or what to screen next”', null],
   ],
   ret:'and your answers join the record',
   from:'Everything you have logged', to:'The one thing still missing'},
- {id:'labs', k:'major', t:'Health analysis', d:'Six areas read separately, then argued into one position rather than averaged.',
-  img:sAnalysis,
-  six:['Symptoms','Medicines','Measurements','Reports','Hereditary','Diagnostics'],
-  overall:{v:'Fair', was:'was Good in June'},
-  from:'Six separate reads', to:'One position, argued not averaged'},
- {id:'fam', k:'major', t:'NutriCheck', d:'Allergies first, then your medicines and conditions, then your goals \u2014 and it is not allowed to sit on the fence.',
+
+ /* Health analysis was here. Removed on your call. The endpoint, the controller
+    and both app screens still exist — see the note at the top of this block —
+    so this is a product decision, not a dead-code cleanup, and it is written
+    down here so nobody re-adds it from the code.
+
+    Daily Advisory takes the slot. DigestCardView renders unconditionally in
+    ServicesHomeView.swift, fed by InsightsService.fetchDailyDigest ->
+    /api/insights/daily-digest, and the card carries the AQI for where you are. */
+ {id:'advisory', k:'major', t:'Daily advisory', d:'One read for today — not a list of actions but the shape of the day, written from your record and the air where you actually are.',
+  img:sServices,
+  six:['Your record','Medicines','Symptoms','Sleep','Where you are'],
+  overall:{l:'Air today', v:'186', was:'unhealthy in Delhi — so today reads differently'},
+  from:'Your record and today’s air', to:'What to do today'},
+
+ /* prompts.js:40 is the order, verbatim: "allergy → med/condition clash → fit
+    with goals → consistency with session history", followed by "Do not default
+    to 'moderate' to avoid deciding." The old line said it was "not allowed to
+    sit on the fence" while the scale below it offers Maybe as a verdict, which
+    read as a contradiction. It is allowed to say Maybe — it is not allowed to
+    say it to get out of deciding. */
+ {id:'nutri', k:'major', t:'NutriCheck', d:'Allergies first, then your medicines and conditions, then your goals — and it will not say “maybe” just to avoid deciding.',
   img:sNutri,
   ask:'Can I eat paneer tikka?',
   scale:[['strong_no','Strong no'],['no','No'],['moderate','Maybe'],['yes','Yes'],['strong_yes','Strong yes']],
   pick:3, why:'High protein. The salt is the only thing to watch against your last BP reading.',
-  from:'\u201cCan I eat this?\u201d', to:'One of five verdicts, and why'},
- {id:'watch', k:'sub', t:'Indian medicine names', d:'Crocin and Dolo are the same molecule. Rantac was withdrawn. Your record knows both.', href:'#/deep/india',
-  from:'Crocin \u00b7 Dolo \u00b7 Calpol', to:'Paracetamol'},
- {id:'india', k:'sub', t:'Apple Watch sync', d:'Ten measurements from Apple Health, each kept with the device and the minute it was taken.', href:'#/deep/watch',
-  from:'Ten readings a day', to:'Read beside your labs'},
- {id:'priv', k:'sub', t:'Doctor sharing', d:'Share a dated summary of your history with the doctor you connect to.', href:'#/deep/doctors',
+  from:'“Can I eat this?”', to:'One of five verdicts, and why'},
+
+ /* InsightsService.swift:11 — GET /api/insights/briefing. The card carries a
+    set of points, a "Fresh" pill when source == "fresh", and the time it was
+    written. Deep page: Every day. */
+ {id:'briefing', k:'sub', t:'Your briefing', d:'A few cards waiting when you open the app, each one thing worth doing and up to three reasons why. They advance on their own.', href:'#/deep/day',
+  from:'Everything that changed', to:'Three cards, one action each'},
+
+ /* WorkoutService.swift — /api/fitness/workouts, and WorkoutsCardView renders
+    each one with its exercise count and date. Rendered unconditionally in the
+    Services tab, unlike Dietary Insights, which is commented out there. */
+ {id:'workouts', k:'sub', t:'Workouts', d:'Log a session with its exercises. It is dated into the same record as your labs and your medicines, not a separate fitness app.',
+  from:'What you actually did', to:'In the record that gets read'},
+
+ /* DoctorService.swift — search, request, accept or decline, then a dated
+    summary goes to the doctors you are connected to. */
+ {id:'doctors', k:'sub', t:'My doctor', d:'Connect to your doctor, accept or decline requests, and share a dated summary of your history with the ones you keep.', href:'#/deep/doctors',
   from:'Eleven scattered PDFs', to:'One dated summary'},
 ];
 
@@ -1996,8 +2613,12 @@ function BentoCard({c}){
     io.observe(el); return()=>io.disconnect();
   },[]);
   const Tag=c.href?'a':'div';
+  /* fx-glow, and the -4px hover lift in the stylesheet, only belong on the three
+     cards that are links. The other three lifted and lit under the cursor and
+     went nowhere — half a grid promising a click it could not honour. The lift
+     is now scoped to `a.px-bn` in the stylesheet; the glow is scoped here. */
   return(
-  <Tag ref={ref} className={`px-bn px-bn--${c.k} fx-glow ${on?'is-on':''}`} style={{gridArea:c.id}} href={c.href}>
+  <Tag ref={ref} className={`px-bn px-bn--${c.k} ${c.href?'fx-glow ':''}${on?'is-on':''}`} style={{gridArea:c.id}} href={c.href}>
     {/* The capture is back as texture behind the readout. It sits further down
         than before — the readout is real content now, not a title over
         wallpaper, so the photograph has to stay under it rather than compete. */}
@@ -2048,7 +2669,7 @@ function BentoCard({c}){
           {c.six.map((x,i)=><span key={x} style={{'--i':i}}>{x}</span>)}
         </div>
         <div className="px-six__o">
-          <span className="px-six__ol">Overall</span>
+          <span className="px-six__ol">{c.overall.l||'Overall'}</span>
           <b className="px-data">{c.overall.v}</b>
           <em>{c.overall.was}</em>
         </div>
@@ -2101,53 +2722,71 @@ function BentoCard({c}){
    The screenshot is sharp: the glass panel and the spine now occupy the region
    where the app's own headline sits, so the collision that forced the blur is
    designed out rather than blurred out. */
-const CARDS=[
- {t:'Richie', sub:'Your health assistant', tag:'Grounded',
-  img:sRichie,
-  moment:{q:'Why is my heart rate so variable?',
-          a:'Your resting rate has held at 56. It is sleep that moved — four nights under 7h.'},
-  how:['You ask','It reads your record','It shows what it used']},
+/* EVERY CARD IS A QUESTION AND RICHIE'S ANSWER. They used to lead with a
+   reading — "Your diabetes risk / 60/100 / twenty of those points came from
+   their records" — which is three fragments of a database row and says nothing
+   to anyone. A number on its own is a tracker. So each card is now the exchange:
+   what you would type, and what comes back, in sentences.
 
- {t:'Lab reports', sub:'Photograph it, it reads it', tag:'Vision',
+   Every question needs MORE than the card's own data type to answer — the
+   headache needs the air, the risk score needs a parent's record, the
+   cholesterol needs the four reports before it. That is the argument for one
+   joined record, and it cannot be made by a number in a box. */
+const CARDS=[
+ {t:'Medical reports', sub:'Photograph it, it reads it', tag:'Vision',
   img:sReports,
-  metric:{n:'LDL cholesterol', v:'142', u:'mg/dL', s:'attn',
-          note:'was 128 in February · fourth report in a row'},
+  moment:{q:'Is my cholesterol actually getting worse?',
+          a:'Yes. LDL is 142 today, 128 in February and 121 last October — up at every report. All four are on one axis.'},
   how:['Photograph the page','Every value extracted and dated','Trended against the last']},
 
  {t:'Family', sub:'Everyone you look after', tag:'Ultra',
   img:sFamily,
-  metric:{n:'Your diabetes risk', v:'60', u:'IDRS', s:'watch',
-          note:'twenty of those points came from your parents’ records'},
+  /* riskTools.js — familyHistory both_parents is 20 points, and the band at 60
+     reads "High risk — screening glucose/HbA1c is recommended". */
+  moment:{q:'Does my parents’ diabetes change my risk?',
+          a:'It does. Both of them having it adds twenty points, which takes you from 40 to 60 — and 60 is where a screening blood test is advised.'},
   how:['Add a person','They get their own ranges','And their own private chat']},
 
- {t:'Cycle log', sub:'Read beside your bloods', tag:'The moat',
+ {t:'Period history', sub:'Read beside your bloods', tag:'The moat',
   img:sPeriod,
   moment:{q:'Why has my cycle been irregular?',
-          a:'Your TSH came back 5.8 in March and ferritin is low. A cycle app would not have seen either.'},
+          a:'Your thyroid test came back high in March and your iron is low. A period app would not have seen either.'},
   how:['Log flow and pain','It sits with your labs','They are read together']},
 
  {t:'Symptoms', sub:'A bad night, logged', tag:'Daily',
   img:sHub,
-  metric:{n:'Headache', v:'4', u:'/10', s:'watch',
-          note:'14 August · the day Delhi’s air hit 186'},
+  moment:{q:'Why do I keep getting headaches this week?',
+          a:'You logged one on the 14th, the 16th and the 19th. The air where you live was over 180 on all three days.'},
   how:['Log it in seconds','It is dated for you','Read against air and labs']},
 
- {t:'Medicines', sub:'Reminders that count', tag:'Adherence',
+ {t:'Medications', sub:'Reminders that count', tag:'Adherence',
   img:sMeds,
-  metric:{n:'Metformin 500', v:'86', u:'%', s:'watch',
-          note:'18 of 21 doses this month, logged as you took them'},
+  moment:{q:'Am I actually taking it, or do I just think I am?',
+          a:'Eighteen of twenty-one doses this month, each one answered from the notification. That is what happened, not what you remember.'},
   how:['Add it once','It reminds you','Taken or missed, recorded']},
+
+ {t:'Measurements', sub:'Typed once, trended after', tag:'Daily',
+  img:sMeasure,
+  moment:{q:'Is my blood pressure creeping up?',
+          a:'A little. 128/84 today against 118/76 in March — worth watching next to your waist and what runs in your family.'},
+  how:['Add a reading','It joins the trend','Read beside your bloods']},
+
+ {t:'Apple Health & Health Connect', sub:'Ten readings, each with its source', tag:'Automatic',
+  img:sWatchScr,
+  moment:{q:'Is my resting heart rate telling me anything?',
+          a:'It has gone from 51 in spring to 56 now — alongside your sleep dropping under six hours and the tablet you started in June.'},
+  how:['Connect it once','Readings arrive on their own','Kept with their source']},
 
  {t:'Air quality', sub:'Today’s air, in your advice', tag:'Local',
   img:sAqi,
-  metric:{n:'Delhi', v:'186', u:'AQI', s:'attn',
-          note:'unhealthy — so today’s advice says train indoors'},
+  moment:{q:'Should I run outside today?',
+          a:'Not today. The air where you are is 186, which is unhealthy. Train indoors and try again tomorrow.'},
   how:['Read where you are','Kept with the day','Folded into the advice']},
 
  {t:'Memory', sub:'What it has learned', tag:'Yours',
   img:sProfile,
-  moment:{q:'“I’m lactose intolerant.”',
-          a:'Saved to your profile. Considered every time food comes up — and you can delete it.'},
+  moment:{q:'Does it remember I’m lactose intolerant?',
+          a:'Yes — you told me in June and I saved it to your profile. I use it every time food comes up, and you can delete it.'},
   how:['It learns a fact','It is listed in Settings','Delete any of them']},
 ];
 
@@ -2217,18 +2856,22 @@ function Carousel({items}){
            attention. One neighbour each side is the deck; more is a pile. */
         const far=Math.abs(o)>1;
         return(
-        /* A neighbour that is half-visible reads as "click me" whether or not it
-           is wired, so wire it. The centre card stays inert. Screen readers reach
-           the same cards through the dots and arrows below, so the off-centre
-           cards keep aria-hidden and take no tab stop. */
+        /* Clicking a neighbour brings it forward. This was removed once on the
+           argument that a mouse-only target is inaccessible — that was wrong.
+           WCAG 2.1.1 requires the FUNCTION to be keyboard operable, not every
+           pointer target to be focusable, and this function has three keyboard
+           paths already: the dots, the arrows, and Left/Right on the focused
+           deck. A redundant pointer target beside them is a convenience, not a
+           barrier. aria-hidden stays: the dots are what name each card to a
+           screen reader, and announcing the deck twice would be the real defect. */
         <article className={`px-tc ${o===0?'is-on':''} ${o!==0?'is-side':''}`} key={d.t}
+          onClick={o!==0&&!far?()=>jump(k):undefined}
           /* No will-change. It was tried, on the three visible cards and then on
              all eight, and MEASURED both ways: click-to-first-frame went from 67ms
              with will-change left alone, to 78ms promoting three, to 86ms
              promoting eight. Toggling it mid-deck forces a layer to be built at
              exactly the moment the card has to move. Leaving it off is faster. */
           style={{'--o':o, zIndex:20-Math.abs(o), visibility:far?'hidden':'visible'}}
-          onClick={o!==0?()=>jump(k):undefined}
           aria-hidden={o!==0}>
           <span className="px-tc__veil"/>
           <div className="px-tc__dev"><img src={d.img} alt={`${d.t} in the RichHealth app`}/></div>
@@ -2238,12 +2881,6 @@ function Carousel({items}){
             <div className="px-tc__glass">
               <p className="px-tc__q">{d.moment.q}</p>
               <p className="px-tc__a"><img src={logo} alt=""/><span>{d.moment.a}</span></p>
-            </div>)}
-          {d.metric&&(
-            <div className="px-tc__glass px-tc__glass--m">
-              <span className="px-tc__mn">{d.metric.n}</span>
-              <span className="px-tc__mv"><b className="px-data">{d.metric.v}</b><em>{d.metric.u}</em></span>
-              <span className={`px-tc__ms px-tc__ms--${d.metric.s}`}>{d.metric.note}</span>
             </div>)}
 
           {/* the mechanism — a real sequence, so it is numbered */}
@@ -2263,14 +2900,22 @@ function Carousel({items}){
     <div className="px-cw__ui">
       <button className="px-car__arw" aria-label="Previous" onClick={()=>nudge(-1)}>
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
-      <div className="px-cw__dots">
+      {/* aria-current was a fourth answer to "pick one of N". Same radiogroup as
+          the billing toggle, the platform toggle and the FAQ pills. The dot
+          stays 8px; the 44px hit box around it is the button. */}
+      <div className="px-cw__dots" role="radiogroup" aria-label="Choose a card">
         {items.map((d,k)=>(
-          <button key={d.t} className={`px-car__dot ${k===n?'on':''}`}
-            aria-label={d.t} aria-current={k===n} onClick={()=>jump(k)}/>))}
+          <button key={d.t} type="button" role="radio" aria-checked={k===n}
+            tabIndex={k===n?0:-1} className={`px-car__dot ${k===n?'on':''}`}
+            aria-label={d.t} onKeyDown={radioKeys(k,items.length,jump)}
+            onClick={()=>jump(k)}/>))}
       </div>
       <button className="px-car__arw" aria-label="Next" onClick={()=>nudge(1)}>
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
-      <button className="px-cw__pause" onClick={()=>setAuto(a=>!a)} aria-pressed={!auto}>
+      {/* One mechanism, not two. It carried aria-pressed AND swapped its label,
+          so a screen reader said "Pause, pressed" while it was playing. The
+          label is the state. */}
+      <button className="px-cw__pause" type="button" onClick={()=>setAuto(a=>!a)}>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           {auto ? <><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></>
                 : <path d="M8 5l11 7-11 7z"/>}
@@ -2293,8 +2938,14 @@ export function Deck(){return(
           point of the record is not that it is tidy — it is that a reading only
           means something next to everything else about you. The lede also said
           "Six ways" while CARDS has eight. */}
-      <Head k="What it does" t={<>Eight kinds of health data, <i>one record.</i></>}
-        l="Symptoms, measurements, lab reports, medicines, cycles, family history, your watch and the air where you live. Every entry dated and attributed, and Richie only ever answers from what is in it."/>
+      {/* The card list was the record PLUS Richie himself, and it was missing two
+          of the app's own Health Hub sections. Richie is the thing that reads
+          the record, not a thing inside it, so he is out; Measurements and the
+          watch feed are in, which is what the app actually stores and what the
+          lede was already promising. Nine cards, and the heading is now
+          literally true. */}
+      <Head k="What it holds" t={<>What it holds — reports, measurements, medicines, <i>cycles.</i></>}
+        l="Symptoms too, and what runs in your family, your watch, the air where you live, and everything Richie has learned about you. Every entry is dated and labelled with where it came from, and Richie only ever answers from what is in it."/>
       <Carousel items={CARDS}/>
     </div>
   </Band>);
@@ -2309,90 +2960,163 @@ export function Deck(){return(
 const FOR = [
  {k:'The one this started with',
   t:'You have every report and nobody to ask',
-  b:'A parent’s diagnosis, in another country or another city. The reports arrive on WhatsApp, the medicines change, and the questions that matter are small and constant — is this value bad, does this drug fight that one, can he drink this.',
+  b:'Your parent is ill and lives somewhere else. Reports come by WhatsApp. The medicines keep changing. The questions are small and constant: is this number bad, do these two drugs clash, can he drink this?',
   /* dependentChatSystemPrompt.js:59-83 — a distinct prompt that addresses the
      caregiver, says "{{dependentName}}'s…" not "your…", and uses paediatric or
      geriatric framing. buildHealthContext(user, dependentId) swaps the whole
      subject record (ai.js:284-303). */
-  d:'Hold their record, switch to it, and ask in their conversation — not yours.',
-  ic:'famgrp'},
+  d:'Keep their record too. Switch to it, and ask in their chat, not yours.',
+  ic:'famgrp', img:sFamilyChat, href:'#/deep/family', cta:'How family records work'},
  {k:'Half the people we know',
   t:'Your cycle is logged, and nobody ever reads it',
-  b:'Period apps know your dates and nothing else. Your thyroid panel is in a different app, your ferritin is in a PDF, and the person who could connect the three has eight minutes.',
+  b:'Period apps know your dates and nothing else. Your thyroid test sits in another app, your iron result sits in a PDF, and the doctor who could join the three up has eight minutes.',
   /* healthCardExtractor.js:37-42 — "ANY report about menstruation MUST use the
      'period' card"; flow words map to flowIntensity, cramps to painLevel. The
      last six logs go into every chat and every analysis (ai.js:276-278). */
-  d:'Log it in a sentence, even mid-conversation. Then it is read beside your bloods.',
-  ic:'gyn'},
+  d:'Log it in a sentence, even in the middle of a chat. Then it is read next to your blood tests.',
+  ic:'gyn', img:sPeriod, href:'#/deep/cycle', cta:'How the cycle log is read'},
  {k:'Anyone with a folder',
   t:'Eleven PDFs, and no one has read them together',
-  b:'Each report was read once, on its own, by someone who had not seen the last one. The trend that matters lives across all of them and has never been looked at.',
+  b:'Every report was read once, on its own, by someone who had not seen the one before. What matters is how the numbers move over time, and nobody has looked at that.',
   /* reportProcessor.js:119-164 — the previous five processed reports are
      summarised into the analysis prompt; canonicalKey + valueNumeric
      (MedicalReport.js:161-167) make "Creatinine, Serum" and "Creatinine" the
      same line on a trend. */
-  d:'Every new report is read against your last five, on the same axis.',
-  ic:'doc'},
+  d:'Every new report is read against your last five, on the same scale.',
+  ic:'doc', img:sReports, href:'#/deep/richie', cta:'How Richie reads them'},
  {k:'Whoever runs health at home',
   t:'You are the one who remembers everyone’s medicines',
-  b:'Your mother’s tablet, your child’s inhaler, the appointment nobody wrote down. It is unpaid work and it has no system, so it lives in your head.',
+  b:'Your mother’s tablet, your child’s inhaler, the appointment nobody wrote down. It is unpaid work with no system, so all of it lives in your head.',
   /* Medication.js:102-115 reminderTimes; offline dose queue on both platforms
      (MedicationReminderHelper.java:419-510, LocalNotificationManager.swift:384-430);
      the plan is mirrored locally so BOOT and offline reschedules need no network. */
-  d:'Reminders you answer from the notification. Answers made offline land when you are back.',
-  ic:'pill'},
+  d:'Reminders you answer straight from the notification. Answers given offline arrive when you are back.',
+  ic:'pill', img:sMeds, href:'#/deep/day', cta:'A day with it'},
+ {k:'Everyone wearing one',
+  t:'Your watch counts all day and explains nothing',
+  b:'Steps, sleep, heart rate, every day for a year. It is a lot of numbers, and not one of them is ever read next to your blood test or the medicine you started last month.',
+  /* Observation.js holds fifteen reading types across five sources including
+     apple_health and health_connect; each reading keeps its source device and
+     its timestamp, which is what lets it be read beside a dated lab value. */
+  d:'Ten readings arrive from Apple Health, each kept with the device and the minute it was taken.',
+  ic:'health', img:sWatchScr, href:'#/deep/watch', cta:'How watch data is used'},
+ {k:'Anyone who feels fine',
+  t:'You only go when something is already wrong',
+  b:'No symptoms, no appointment, no idea what is drifting. The things that warn you early — your waist, your blood pressure, how you sleep — are the things nobody measures between visits.',
+  /* prompts.js:275 — "a question is only worth asking if its answer would
+     change a health recommendation, a risk estimate, or what to screen next".
+     riskSignals.js:114-124 ranks the nine fields worth asking for, each with
+     the reason it earns the question. */
+  d:'A check-in asks only what would change an answer, and what you say joins the record.',
+  ic:'spark', img:sCheckin, href:'#/deep/checkins', cta:'How check-ins work'},
 ];
 
-export function Who(){
-  const[on,setOn]=useState(0);
-  /* Reveal has to live in STATE, not in a class the observer adds to the DOM.
-     This component re-renders on every click, and React rewrites className from
-     its own template on re-render — which silently deleted the `is-in` the
-     observer had added. The observer had already unobserved those rows, so they
-     never came back: one click and all four rows vanished. Any imperative
-     classList.add on a node whose className React also controls is this bug. */
-  const[seen,setSeen]=useState(()=>new Set());
+export /* THE STAGE AND THE INDEX. Two forms were tried here and both failed for the
+   same reason: this section's job is recognition. A visitor has to find
+   themselves in four people, so all four names must be legible at once. An
+   accordion showed four rows of text and no product; a 70/30 reel showed one
+   card and three unreadable strips, which is worse — it hides three quarters of
+   the answer to "is this for me" behind a six-second wait.
+
+   So the four live in an index across the bottom, always readable, and the one
+   in focus gets the whole stage above it with its real app screen. The index is
+   the indicator, the progress bar and the control in one object: the rule over
+   the active column fills across the dwell, and every column is a click target.
+   No arrows.
+
+   NOTHING ANIMATES LAYOUT. The four panels are stacked in one grid cell, so the
+   stage is always as tall as the tallest of them and swapping between them is
+   opacity and a small rise — composited, no reflow. The previous version
+   animated flex-basis on four panes and every decorative layer had to be
+   hand-tuned to stop it dropping frames. This has nothing to tune. */
+function Who(){
+  const [n,setN]=useState(0);
+  const [hold,setHold]=useState(false);
+  const [seen,setSeen]=useState(false);
   const ref=useRef(null);
+
+  /* Reveal in React state, not classList — useReveal() writes `in` onto .px-rv
+     nodes and React wipes it on the next render of this component. */
+  useEffect(()=>{const el=ref.current; if(!el) return;
+    const io=new IntersectionObserver(es=>{ if(es[0].isIntersecting){ setSeen(true); io.disconnect(); } },
+      {threshold:.15});
+    io.observe(el); return()=>io.disconnect();},[]);
+
+  /* NO PAUSE BUTTON, by request. It runs from the moment it is on screen and
+     never stops for the pointer. Two things still stop it, and both are needed:
+     keyboard focus inside the section (so a keyboard reader is not moved off the
+     panel they are reading), and prefers-reduced-motion, which turns the whole
+     thing into a manual control. Worth knowing: WCAG 2.2.2 asks for a visible
+     mechanism to pause anything that auto-updates for longer than five seconds,
+     and that is what the button was. Say the word and it can come back as a
+     small control that only appears on hover. */
+  const run = !hold && seen;
+
   useEffect(()=>{
-    const el=ref.current; if(!el) return;
-    const rows=[...el.querySelectorAll('.px-who2__row')];
-    if(window.matchMedia('(prefers-reduced-motion:reduce)').matches){
-      setSeen(new Set(rows.map((_,i)=>i))); return;
-    }
-    const io=new IntersectionObserver(es=>es.forEach(e=>{
-      if(!e.isIntersecting) return;
-      const i=rows.indexOf(e.target);
-      if(i>-1) setSeen(p=>p.has(i)?p:new Set(p).add(i));
-      io.unobserve(e.target);
-    }),{threshold:.3, rootMargin:'0px 0px -10% 0px'});
-    rows.forEach(r=>io.observe(r)); return()=>io.disconnect();
-  },[]);
+    if(!run) return;
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const id=setTimeout(()=>setN(p=>(p+1)%FOR.length), 4500);
+    return()=>clearTimeout(id);
+  },[n,run]);
+
+  const jump=k=>{ setN(k); };
+
   return(
   <Band id="s-who">
     <div className="px-wrap" ref={ref}>
-      <Head k="Who this is for" t={<>Four people, <i>and the same missing thing.</i></>}
-        l="Nobody in this list needs another tracker. They need one place that holds it all and something that will actually read it."/>
-      <div className="px-who2">
-        {FOR.map((f,i)=>(
-          <button type="button" key={f.t} style={{'--i':i}}
-            className={`px-who2__row ${seen.has(i)?'is-in':''} ${on===i?'is-open':''}`}
-            aria-expanded={on===i} onClick={()=>setOn(on===i?-1:i)}>
-            <span className="px-who2__n">{String(i+1).padStart(2,'0')}</span>
-            <span className="px-who2__mid">
-              <span className="px-who2__k">{f.k}</span>
-              <span className="px-who2__t">{f.t}</span>
-              {/* ONE child inside the 0fr track. Two children put the second
-                  into an implicit auto row, which is why the closed rows were
-                  holding a couple of hundred pixels of nothing. */}
-              <span className="px-who2__body">
-                <span className="px-who2__inner">
-                  <span className="px-who2__b">{f.b}</span>
-                  <span className="px-who2__d"><Ico n={f.ic} size={15}/>{f.d}</span>
-                </span>
-              </span>
-            </span>
-            <span className="px-who2__x" aria-hidden="true"><Ico n="chev" size={14}/></span>
-          </button>))}
+      <Head k="Who" t={<>Who it’s for. <i>Which one is you?</i></>}
+        l="Six people, all doing this the hard way. None of them needs another tracker. They need one place that holds everything, and something that will actually read it."/>
+
+      <div className={`px-reel ${seen?'is-in':''}`}
+        onFocusCapture={()=>setHold(true)} onBlurCapture={()=>setHold(false)}>
+
+        {/* All four in one grid cell. The stage is the height of the tallest,
+            which is why nothing jumps when the panel changes. */}
+        <div className="px-reel__stage fx-glow">
+          {FOR.map((f,i)=>{
+            const on=i===n;
+            return(
+            <div key={f.t} className={`px-reel__panel ${on?'is-on':''}`} inert={on?undefined:''}>
+              <span className="px-reel__glow" aria-hidden="true"/>
+              {/* A FRAME, not a loose <img>. The bare image was taller than the
+                  stage at any useful width, so its top was sliced off by the
+                  stage edge and it read as a flat panel. The frame has a visible
+                  rounded top inside the stage and bleeds off the bottom, which
+                  is the device standing at the back of the set. */}
+              <div className="px-reel__dev" aria-hidden="true">
+                <img src={f.img} alt="" loading="lazy"/>
+              </div>
+              {/* The site's hairline row, not a new one: a ghost figure in a
+                  fixed left column, a rule across the top, everything else in
+                  the right column — the same object as .px-spine li and
+                  .px-ledger li. The rule runs the full width of the stage so it
+                  ties the column to the screen at the other end. */}
+              <div className="px-reel__col">
+                <span className="px-reel__num" aria-hidden="true">{String(i+1).padStart(2,'0')}</span>
+                <div className="px-reel__txt">
+                  <span className="px-reel__k">{f.k}</span>
+                  <h3 className="px-reel__t"><span>{f.t}</span></h3>
+                  <p className="px-reel__b">{f.b}</p>
+                  <p className="px-reel__d"><Ico n={f.ic} size={15}/>{f.d}</p>
+                  <a className="px-reel__cta px-arw" href={f.href}>{f.cta}</a>
+                </div>
+              </div>
+            </div>);})}
+        </div>
+
+        {/* The index. Same radiogroup contract as the billing toggle, the
+            platform toggle and the FAQ pills — one tab stop, arrows to move. */}
+        <div className="px-reel__idx" role="radiogroup" aria-label="Choose who this is for">
+          {FOR.map((f,k)=>(
+            <button key={f.t} type="button" role="radio" aria-checked={k===n}
+              tabIndex={k===n?0:-1}
+              className={`px-reel__tab ${k===n?'on':''} ${run?'is-run':''}`}
+              onKeyDown={radioKeys(k,FOR.length,jump)} onClick={()=>jump(k)}>
+              <span className="px-reel__tn" aria-hidden="true">{String(k+1).padStart(2,'0')}</span>
+              <span className="px-reel__tk">{f.k}</span>
+            </button>))}
+        </div>
+
       </div>
     </div>
   </Band>);
@@ -2401,7 +3125,7 @@ export function Who(){
 export function Holds(){return(
   <Band alt id="s-holds">
     <div className="px-wrap">
-      <Head k="The rest of it" t={<>Six more things it does <i>on the same record.</i></>}
+      <Head k="What it does" t={<>What it does with it — check-ins, analysis, <i>NutriCheck.</i></>}
         l="Nothing here asks you to type anything again. Each one reads the record you just built and turns it into something you can act on."/>
       <div className="px-bento px-rv">
         {BENTO.map(c=><BentoCard c={c} key={c.id}/>)}
@@ -2414,12 +3138,19 @@ export default function Premium(){
   useReveal(); useGlow();
   return(<div className="px">
     {/* Proof sits between the claim and the price: the last objection is "can I
-        believe it", and it is answered immediately before the ask. */}
+        believe it", and it is answered immediately before the ask. It used to
+        sit BEFORE Holds, which broke the nav: the spy lights the lowest section
+        that has begun, and s-holds belongs to "What it holds" while s-proof is
+        "How it answers" — so scrolling past Proof lit "How it answers", then
+        went BACKWARDS to "What it holds" for the length of Holds, then jumped to
+        Pricing. Holds now finishes its own group before Proof starts, and Proof
+        still lands immediately before Pricing, which was the point of putting it
+        here in the first place. */}
     {/* ORDER. The site used to go straight from the problem into eight data
         types — a feature list before anyone had been told who it was for. Who
         now sits directly after the problem, and the feed sits after Holds
         because it is the one thing that arrives without you asking. */}
-    <Nav/><Hero/><Sources/><Problem/><Who/><Deck/><Intake/><Proof/><Holds/><Pricing/><Faq/><Closer/>
-    <Foot/><QR/>
+    <Nav/><Hero/><Sources/><Problem/><Who/><Deck/><Holds/><Intake/><Proof/><Pricing/><Faq/><Closer/>
+    <Foot/><LaunchPill/>
   </div>);
 }

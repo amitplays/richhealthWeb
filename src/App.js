@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useId } from 'react';
 import './App.css';
 import { DIALOG_CONTENT, RICHIE_PROMPTS, JOBS, LEGAL } from './content';
 import Premium, { Consent, SiteNav, Foot } from './Premium';
@@ -987,16 +987,35 @@ function usePage() {
     if (h.startsWith('#/deep/')) return { name: 'deep', slug: h.replace('#/deep/', '') };
     if (h === '#/quality' || h === '#/security' || h === '#/about')
       return { name: 'page', slug: h.replace('#/', '') };
-    // Home, optionally with a section anchor. Both `#s-pricing` (a link written on
-    // home) and `#/#s-pricing` (the same link written on a product page, which has
-    // to name the route as well) have to land on the same section.
-    return { name: 'home', anchor: h.replace(/^#\/?/, '').replace(/^#/, '') };
+    // Home, optionally with a section anchor. Both `#/` and `#/#s-pricing` (the
+    // route-qualified form a product page has to write) land here.
+    if (h === '' || h === '#' || h.startsWith('#/')) {
+      return { name: 'home', anchor: h.replace(/^#\/?/, '').replace(/^#/, '') };
+    }
+    // A BARE anchor — `#openings`, `#section-3`, `#get`, `#s-pricing`. It names a
+    // position, not a route, so it must not be parsed as one. This used to fall
+    // through to `home`, which meant the careers page's own "See open roles"
+    // button and every legal document's table of contents REPLACED the page they
+    // were on with the marketing home page. `anchor` is handled below by scrolling
+    // and keeping the current route.
+    return { name: 'anchor', anchor: h.slice(1) };
   };
-  const [page, setPage] = useState(parse());
+  // On a cold load there is no current route to keep, so a bare anchor can only
+  // mean home — that is where every bare anchor written on the home page points.
+  const [page, setPage] = useState(() => {
+    const p0 = parse();
+    return p0.name === 'anchor' ? { name: 'home', anchor: p0.anchor } : p0;
+  });
   useEffect(() => {
     const onHash = () => {
       const next = parse();
       setPage(prev => {
+        // Same page, in-page anchor: scroll to it and keep the route.
+        if (next.name === 'anchor') {
+          const el = document.getElementById(next.anchor);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          return prev;
+        }
         // Only scroll-to-top when the page actually changes (not when an in-page anchor changes)
         if (prev.name !== next.name) {
           // `behavior:'auto'` still obeys html{scroll-behavior:smooth} from index.css,
@@ -1006,6 +1025,10 @@ function usePage() {
           // In-page anchor on home — let the browser do native smooth-scroll
           const el = document.getElementById(next.anchor);
           if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (!next.anchor && prev.anchor) {
+          // The route did not change and the anchor was cleared — this is the
+          // logo being clicked while scrolled down the page. Go to the top.
+          window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
         }
         if (prev.name !== 'home' && next.name === 'home' && next.anchor) {
           // Arriving home from another page *at* a section: the element does not
@@ -1019,6 +1042,19 @@ function usePage() {
       });
     };
     window.addEventListener('hashchange', onHash);
+    // COLD LOAD AT AN ANCHOR. Everything above hangs off `hashchange`, which does
+    // not fire when the page is opened *at* a hash — so someone following a
+    // shared link to #/#s-pricing landed on the hero, and every section link in
+    // the footer was dead the moment it left this tab. The browser cannot do it
+    // for us either: the target element does not exist until React commits.
+    // Two frames, same as the cross-route path.
+    const first = parse();
+    if (first.anchor) {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const el = document.getElementById(first.anchor);
+        if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
+      }));
+    }
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
   return page;
@@ -1092,9 +1128,13 @@ function CareersPage() {
                     <div><dt>Location</dt><dd>{j.location}</dd></div>
                     <div><dt>Compensation</dt><dd>{j.pay}</dd></div>
                   </dl>
+                  {/* One action. "View full description" pointed at the SAME
+                      url as "Apply for this role" — there is no separate
+                      description page; the apply route carries the full
+                      description in its own sidebar. Two controls to one place,
+                      promising two different things, is a lie told by layout. */}
                   <div className="opening-actions">
-                    <a className="btn-primary opening-apply" href={`#/careers/apply/${j.id}`}>Apply for this role</a>
-                    <a className="link-cta" href={`#/careers/apply/${j.id}`}>View full description →</a>
+                    <a className="btn-primary opening-apply px-arw" href={`#/careers/apply/${j.id}`}>Apply for this role</a>
                   </div>
                 </article>
               ))}
@@ -1118,6 +1158,10 @@ function ApplicationPage({ jobId }) {
   const job = JOBS.find(j => j.id === jobId);
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  /* The highest step the reader has tried to leave. Nothing shows an error
+     before they have asked to move on. */
+  const [tried, setTried] = useState(0);
+  const [draft, setDraft] = useState('');
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: '', phone: '',
     country: '', city: '', linkedin: '', portfolio: '', github: '',
@@ -1135,7 +1179,7 @@ function ApplicationPage({ jobId }) {
           <div className="container" style={{padding:'120px 0',textAlign:'center'}}>
             <h2 className="section-title">Role not found</h2>
             <p className="section-subtitle">The role you tried to open doesn't exist anymore. It may have been filled.</p>
-            <a className="btn-primary" href="#/careers">See open roles</a>
+            <a className="btn-primary" href="#/careers">Back to all roles</a>
           </div>
         </main>
         <Foot/>
@@ -1144,12 +1188,54 @@ function ApplicationPage({ jobId }) {
   }
 
   const onChange = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
-  const canStep1 = form.firstName && form.lastName && form.email && form.country && form.city;
-  const canStep2 = form.yearsExperience && form.currentRole && form.workAuth && form.expectedComp;
-  const canStep3 = form.whyRichhealth.trim().length >= 80 && form.proudestWork.trim().length >= 80 && form.consentPrivacy;
+
+  /* ── ONE VALIDATION PASS, AND IT IS THE ONE THAT SPEAKS ─────────────────────
+     The form was noValidate, so `required`, `min` and `max` were decoration the
+     browser never read — and nothing else read them either. Typing sixty
+     characters into a field that wants eighty left Submit dead with no reason
+     given anywhere on the page. noValidate stays (native bubbles would fight the
+     inline messages), and every rule those attributes claimed is enforced here
+     and said out loud beside the field it belongs to. */
+  const MIN = 80;
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  const need = 'This one is needed.';
+  const short = (v) => {
+    const len = v.trim().length;
+    const n = MIN - len;
+    if (n <= 0) return '';
+    return len ? `${n} more character${n === 1 ? '' : 's'} to go.` : `Needed — at least ${MIN} characters.`;
+  };
+  const yearsBad = () => {
+    const v = String(form.yearsExperience).trim();
+    if (!v) return need;
+    const n = Number(v);
+    return (!Number.isFinite(n) || n < 0 || n > 60) ? 'A whole number between 0 and 60.' : '';
+  };
+  const err = {
+    firstName: form.firstName.trim() ? '' : need,
+    lastName: form.lastName.trim() ? '' : need,
+    email: !form.email.trim() ? need : (EMAIL_RE.test(form.email.trim()) ? '' : 'That does not look like an email address.'),
+    country: form.country.trim() ? '' : need,
+    city: form.city.trim() ? '' : need,
+    yearsExperience: yearsBad(),
+    currentRole: form.currentRole.trim() ? '' : need,
+    workAuth: form.workAuth ? '' : need,
+    expectedComp: form.expectedComp.trim() ? '' : need,
+    whyRichhealth: short(form.whyRichhealth),
+    proudestWork: short(form.proudestWork),
+    consentPrivacy: form.consentPrivacy ? '' : 'We cannot hold your application without this.',
+  };
+  const clean = (...ks) => ks.every(k => !err[k]);
+  const canStep1 = clean('firstName', 'lastName', 'email', 'country', 'city');
+  const canStep2 = clean('yearsExperience', 'currentRole', 'workAuth', 'expectedComp');
+  const canStep3 = clean('whyRichhealth', 'proudestWork', 'consentPrivacy');
+  /* An error is only shown once the reader has tried to leave the step it is on. */
+  const show = (n, k) => (tried >= n ? err[k] : '');
+  const advance = (n, ok) => () => { setTried(t => Math.max(t, n)); if (ok) setStep(n + 1); };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setTried(3);
     if (!canStep3) return;
     const subject = encodeURIComponent(`Application — ${job.title} — ${form.firstName} ${form.lastName}`);
     const lines = [
@@ -1181,7 +1267,14 @@ function ApplicationPage({ jobId }) {
       `Heard from: ${form.heardFrom}`,
     ].join('\n');
     const body = encodeURIComponent(lines);
-    window.location.href = `mailto:careers@richhealth.app?subject=${subject}&body=${body}`;
+    /* A mailto: hand-off cannot be confirmed. The browser exposes no result, so
+       the page used to assert "Your draft is open in your email client" on the
+       line after it fired, whether or not anything opened. It now says what it
+       actually did, and carries the same link again so a reader whose client did
+       not open has something to press. */
+    const href = `mailto:careers@richhealth.app?subject=${subject}&body=${body}`;
+    setDraft(href);
+    window.location.href = href;
     setSubmitted(true);
   };
 
@@ -1190,7 +1283,7 @@ function ApplicationPage({ jobId }) {
       <SiteNav slug="careers" alwaysStuck/>
       <main>
         <div className="container apply-container">
-          <a href="#/careers" className="apply-back">&larr; Back to all roles</a>
+          <a href="#/careers" className="apply-back px-arw--back">Back to all roles</a>
 
           <header className="apply-header">
             <div className="job-team">{job.team}</div>
@@ -1236,42 +1329,58 @@ function ApplicationPage({ jobId }) {
               {submitted ? (
                 <div className="apply-submitted">
                   <div className="apply-submitted-tick">{I.checkCircle}</div>
-                  <h2 className="modal-title">Your draft is open in your email client.</h2>
-                  <p className="modal-body">We pre-filled a structured application addressed to <strong>careers@richhealth.app</strong>. Hit send to officially apply. Attach your CV and any portfolio assets in that email. We respond within 5 business days.</p>
-                  <a className="btn-primary" href="#/careers">Browse other roles</a>
+                  <h2 className="modal-title">One step left: send the email.</h2>
+                  <p className="modal-body">We built a structured application addressed to <strong>careers@richhealth.app</strong> and handed it to your email client. Attach your CV and hit send — nothing reaches us until you do. We respond within 5 business days.</p>
+                  <p className="modal-body">If no draft opened, your browser has no mail client set. Open it again below, or write to <a href="mailto:careers@richhealth.app">careers@richhealth.app</a> yourself.</p>
+                  <div className="apply-actions">
+                    <a className="btn-primary" href={draft}>Open the draft</a>
+                    <a className="link-cta" href="#/careers">Back to all roles</a>
+                  </div>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="apply-form" noValidate>
-                  <div className="apply-progress">
-                    <div className={`apply-progress-step ${step >= 1 ? 'active' : ''} ${step > 1 ? 'done' : ''}`}><span>01</span> Personal</div>
-                    <div className="apply-progress-line"/>
-                    <div className={`apply-progress-step ${step >= 2 ? 'active' : ''} ${step > 2 ? 'done' : ''}`}><span>02</span> Background</div>
-                    <div className="apply-progress-line"/>
-                    <div className={`apply-progress-step ${step >= 3 ? 'active' : ''}`}><span>03</span> Why RichHealth</div>
-                  </div>
+                  {/* Three <div>s with no role and no aria-current: a screen
+                      reader could not tell which of the three steps it was on. */}
+                  <ol className="apply-progress" aria-label="Application progress">
+                    {[[1,'Personal'],[2,'Background'],[3,'Why RichHealth']].map(([n,label],x) => (
+                      <React.Fragment key={n}>
+                        {x > 0 && <li className="apply-progress-line" aria-hidden="true"/>}
+                        <li className={`apply-progress-step ${step >= n ? 'active' : ''} ${step > n ? 'done' : ''}`}
+                          aria-current={step === n ? 'step' : undefined}>
+                          <span>{`0${n}`}</span> {label}
+                        </li>
+                      </React.Fragment>
+                    ))}
+                  </ol>
 
                   {step === 1 && (
                     <div className="apply-step">
                       <h3 className="apply-step-title">Tell us who you are</h3>
                       <div className="apply-row apply-row-2">
-                        <Field label="First name" required value={form.firstName} onChange={onChange('firstName')} />
-                        <Field label="Last name" required value={form.lastName} onChange={onChange('lastName')} />
+                        <Field label="First name" required error={show(1,'firstName')} value={form.firstName} onChange={onChange('firstName')} />
+                        <Field label="Last name" required error={show(1,'lastName')} value={form.lastName} onChange={onChange('lastName')} />
                       </div>
                       <div className="apply-row apply-row-2">
-                        <Field label="Email" type="email" required value={form.email} onChange={onChange('email')} />
+                        <Field label="Email" type="email" required error={show(1,'email')} value={form.email} onChange={onChange('email')} />
                         <Field label="Phone" type="tel" placeholder="+1 416 555 0142" value={form.phone} onChange={onChange('phone')} />
                       </div>
                       <div className="apply-row apply-row-2">
-                        <Field label="Country" required value={form.country} onChange={onChange('country')} />
-                        <Field label="City" required value={form.city} onChange={onChange('city')} />
+                        <Field label="Country" required error={show(1,'country')} value={form.country} onChange={onChange('country')} />
+                        <Field label="City" required error={show(1,'city')} value={form.city} onChange={onChange('city')} />
                       </div>
                       <div className="apply-row apply-row-3">
                         <Field label="LinkedIn URL" placeholder="https://linkedin.com/in/…" value={form.linkedin} onChange={onChange('linkedin')} />
                         <Field label="Portfolio / website" placeholder="https://…" value={form.portfolio} onChange={onChange('portfolio')} />
                         <Field label="GitHub / Scholar" placeholder="https://github.com/… or scholar.google.com/…" value={form.github} onChange={onChange('github')} />
                       </div>
+                      {/* aria-disabled, not disabled: a control the reader
+                          cannot click is a control that can never tell them why.
+                          It still refuses to advance — it just says what is
+                          missing when they press it. Same pattern as the
+                          waitlist button in Premium.js. */}
                       <div className="apply-actions">
-                        <button type="button" className="btn-primary" disabled={!canStep1} onClick={() => setStep(2)}>Continue &rarr;</button>
+                        <button type="button" className="btn-primary px-arw" aria-disabled={!canStep1} onClick={advance(1, canStep1)}>Continue</button>
+                        {tried >= 1 && !canStep1 && <p className="apply-error" role="alert">Some answers are still needed — the fields above say which.</p>}
                       </div>
                     </div>
                   )}
@@ -1280,23 +1389,28 @@ function ApplicationPage({ jobId }) {
                     <div className="apply-step">
                       <h3 className="apply-step-title">Your background</h3>
                       <div className="apply-row apply-row-2">
-                        <Field label="Years of relevant experience" required type="number" min="0" max="60" value={form.yearsExperience} onChange={onChange('yearsExperience')} />
-                        <SelectField label="Work preference" required value={form.remoteOk} onChange={onChange('remoteOk')}
+                        <Field label="Years of relevant experience" required type="number" min="0" max="60" inputMode="numeric"
+                          error={show(2,'yearsExperience')} value={form.yearsExperience} onChange={onChange('yearsExperience')} />
+                        {/* The asterisk came off: this was marked required and
+                            gated nothing, so the form said "you must" and meant
+                            "you need not". It is a preference, so it is optional. */}
+                        <SelectField label="Work preference" value={form.remoteOk} onChange={onChange('remoteOk')}
                           options={['', 'Fully remote', 'Hybrid', 'Onsite, will relocate', 'Onsite, no relocation']} />
                       </div>
                       <div className="apply-row apply-row-2">
-                        <Field label="Current role / title" required value={form.currentRole} onChange={onChange('currentRole')} />
+                        <Field label="Current role / title" required error={show(2,'currentRole')} value={form.currentRole} onChange={onChange('currentRole')} />
                         <Field label="Current company" value={form.currentCompany} onChange={onChange('currentCompany')} />
                       </div>
                       <div className="apply-row apply-row-2">
-                        <SelectField label="Work authorisation" required value={form.workAuth} onChange={onChange('workAuth')}
+                        <SelectField label="Work authorisation" required error={show(2,'workAuth')} value={form.workAuth} onChange={onChange('workAuth')}
                           options={['', 'Citizen / Permanent resident of country I am applying from', 'Will need sponsorship', 'Other — will note in cover']} />
                         <Field label="Notice period" placeholder="e.g. 2 months" value={form.noticePeriod} onChange={onChange('noticePeriod')} />
                       </div>
-                      <Field label="Expected compensation" required placeholder="e.g. CAD 200k base + equity, or ₹65L base + equity" value={form.expectedComp} onChange={onChange('expectedComp')} />
+                      <Field label="Expected compensation" required error={show(2,'expectedComp')} placeholder="e.g. CAD 200k base + equity, or ₹65L base + equity" value={form.expectedComp} onChange={onChange('expectedComp')} />
+                      {tried >= 2 && !canStep2 && <p className="apply-error" role="alert">Some answers are still needed — the fields above say which.</p>}
                       <div className="apply-actions apply-actions-split">
-                        <button type="button" className="link-cta" onClick={() => setStep(1)}>&larr; Back</button>
-                        <button type="button" className="btn-primary" disabled={!canStep2} onClick={() => setStep(3)}>Continue &rarr;</button>
+                        <button type="button" className="link-cta px-arw--back" onClick={() => setStep(1)}>Back</button>
+                        <button type="button" className="btn-primary px-arw" aria-disabled={!canStep2} onClick={advance(2, canStep2)}>Continue</button>
                       </div>
                     </div>
                   )}
@@ -1306,15 +1420,15 @@ function ApplicationPage({ jobId }) {
                       <h3 className="apply-step-title">Why RichHealth.ai</h3>
                       <TextareaField
                         label="Why this role, why us, why now?"
-                        required minLength={80}
-                        placeholder="80+ characters. Specific is better than enthusiastic — what about this role pulls at you that another wouldn't."
+                        required minLength={MIN} error={show(3,'whyRichhealth')}
+                        placeholder="Specific is better than enthusiastic — what about this role pulls at you that another wouldn't."
                         value={form.whyRichhealth}
                         onChange={onChange('whyRichhealth')}
                       />
                       <TextareaField
                         label="Pick one piece of work you're most proud of and walk us through it"
-                        required minLength={80}
-                        placeholder="80+ characters. What was the problem, what was your decision, what shipped, what would you redo. Links welcome."
+                        required minLength={MIN} error={show(3,'proudestWork')}
+                        placeholder="What was the problem, what was your decision, what shipped, what would you redo. Links welcome."
                         value={form.proudestWork}
                         onChange={onChange('proudestWork')}
                       />
@@ -1322,19 +1436,22 @@ function ApplicationPage({ jobId }) {
                         options={['', 'Word of mouth', 'LinkedIn', 'Y Combinator / accelerator', 'Conference talk', 'Search', 'A current team member', 'Other']} />
 
                       <div className="apply-consents">
-                        <label className="apply-consent">
-                          <input type="checkbox" checked={form.consentPrivacy} onChange={onChange('consentPrivacy')} required />
+                        <label className={`apply-consent${show(3,'consentPrivacy') ? ' is-bad' : ''}`}>
+                          <input type="checkbox" checked={form.consentPrivacy} onChange={onChange('consentPrivacy')}
+                            required aria-required="true" aria-invalid={show(3,'consentPrivacy') ? true : undefined}
+                            aria-describedby={show(3,'consentPrivacy') ? 'apply-consent-err' : undefined} />
                           <span>I consent to RichHealth Technologies Inc. processing my application data per the <a href="#/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>. I understand I can request deletion at any time.</span>
                         </label>
                         <label className="apply-consent">
                           <input type="checkbox" checked={form.consentBackground} onChange={onChange('consentBackground')} />
                           <span>I'm okay with a reasonable reference and credentials check if I become a finalist (optional).</span>
                         </label>
+                        {show(3,'consentPrivacy') && <p className="apply-error" id="apply-consent-err">{err.consentPrivacy}</p>}
                       </div>
 
                       <div className="apply-actions apply-actions-split">
-                        <button type="button" className="link-cta" onClick={() => setStep(2)}>&larr; Back</button>
-                        <button type="submit" className="btn-primary" disabled={!canStep3}>Submit application</button>
+                        <button type="button" className="link-cta px-arw--back" onClick={() => setStep(2)}>Back</button>
+                        <button type="submit" className="btn-primary" aria-disabled={!canStep3}>Submit application</button>
                       </div>
                       <p className="apply-mailto-note">Submitting opens your email client with a structured draft pre-addressed to careers@richhealth.app. Attach your CV in that draft and hit send.</p>
                     </div>
@@ -1350,31 +1467,53 @@ function ApplicationPage({ jobId }) {
   );
 }
 
-function Field({ label, required, ...rest }) {
+/* Every field carries the same three parts: a label, the control, and a line
+   under it that is either the rule or the reason it is not met. `error` is
+   passed in already gated on whether the reader has tried to leave the step. */
+function Field({ label, required, error, ...rest }) {
+  const id = useId(), eid = `${id}-note`;
   return (
-    <label className="apply-field">
+    <label className="apply-field" htmlFor={id}>
       <span className="apply-field-label">{label}{required && <span className="apply-required">*</span>}</span>
-      <input className="apply-input" required={required} {...rest} />
+      <input id={id} className={`apply-input${error ? ' is-bad' : ''}`} required={required}
+        aria-required={required || undefined} aria-invalid={error ? true : undefined}
+        aria-describedby={error ? eid : undefined} {...rest} />
+      {error && <span className="apply-error" id={eid}>{error}</span>}
     </label>
   );
 }
 
-function SelectField({ label, required, options, ...rest }) {
+function SelectField({ label, required, error, options, ...rest }) {
+  const id = useId(), eid = `${id}-note`;
   return (
-    <label className="apply-field">
+    <label className="apply-field" htmlFor={id}>
       <span className="apply-field-label">{label}{required && <span className="apply-required">*</span>}</span>
-      <select className="apply-input apply-select" required={required} {...rest}>
+      <select id={id} className={`apply-input apply-select${error ? ' is-bad' : ''}`} required={required}
+        aria-required={required || undefined} aria-invalid={error ? true : undefined}
+        aria-describedby={error ? eid : undefined} {...rest}>
         {options.map((o, i) => <option key={i} value={o}>{o || 'Select…'}</option>)}
       </select>
+      {error && <span className="apply-error" id={eid}>{error}</span>}
     </label>
   );
 }
 
-function TextareaField({ label, required, minLength, ...rest }) {
+/* The only hint the 80-character rule ever had was a sentence inside the
+   placeholder, which disappears the moment anyone types. The count is live and
+   the message is under the field. */
+function TextareaField({ label, required, minLength, error, value, ...rest }) {
+  const id = useId(), eid = `${id}-note`;
+  const left = minLength ? Math.max(0, minLength - String(value || '').trim().length) : 0;
   return (
-    <label className="apply-field">
+    <label className="apply-field" htmlFor={id}>
       <span className="apply-field-label">{label}{required && <span className="apply-required">*</span>}{minLength && <span className="apply-hint"> · {minLength}+ chars</span>}</span>
-      <textarea className="apply-input apply-textarea" required={required} minLength={minLength} rows={5} {...rest} />
+      <textarea id={id} className={`apply-input apply-textarea${error ? ' is-bad' : ''}`}
+        required={required} minLength={minLength} rows={5} value={value}
+        aria-required={required || undefined} aria-invalid={error ? true : undefined}
+        aria-describedby={eid} {...rest} />
+      <span className={error ? 'apply-error' : 'apply-note'} id={eid}>
+        {error || (minLength ? (left ? `${left} more character${left === 1 ? '' : 's'} to go.` : 'Long enough.') : '')}
+      </span>
     </label>
   );
 }
@@ -1690,7 +1829,7 @@ function LegalPage({ slug }) {
       <SiteNav alwaysStuck/>
       <main>
         <div className="container legal-container">
-          <a href="#/" className="apply-back">&larr; Back to home</a>
+          <a href="#/" className="apply-back px-arw--back">Back to home</a>
           <header className="legal-header">
             <div className="legal-eyebrow">{data.eyebrow}</div>
             <h1 className="legal-title">{data.title}</h1>
@@ -1722,8 +1861,8 @@ function LegalPage({ slug }) {
                 <h2 className="legal-h2">Related documents</h2>
                 <div className="legal-related-list">
                   {Object.keys(LEGAL).filter(k => k !== slug).map(k => (
-                    <a key={k} href={`#/legal/${k}`} className="legal-related-link">
-                      {LEGAL[k].title} &rarr;
+                    <a key={k} href={`#/legal/${k}`} className="legal-related-link px-arw">
+                      {LEGAL[k].title}
                     </a>
                   ))}
                 </div>

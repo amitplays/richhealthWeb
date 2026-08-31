@@ -30,7 +30,14 @@ const SIZES=[[1680,1000],[1440,900],[1180,900],[834,1000],[600,900],[390,844]];
         that pointer parallax has edge bleed to move into, and the frame clips
         it with overflow:hidden. getBoundingClientRect reports the pre-clip box,
         so the image reads as escaping when it is not. */
-     const OK='.px-marquee,.px-rail,.px-railwrap,.px-deck__rail,.px-bento,.px-xrail,.px-deckstage,.px-sort,.px-per__frame';
+     /* .px-reel__p is the fourth: a closed pane of the "Who this is for" reel is
+        ~108px wide (6% at mobile) and clips a 560px text block with
+        overflow:hidden. The block is laid out at its full width so the headline
+        breaks the same way it does when open and is then cut — that is the
+        design — but getBoundingClientRect reports the pre-clip box, so a
+        rightmost closed pane reads as escaping. Verified: document overflow is
+        0 at all six widths, and every flagged node sits inside a pane. */
+     const OK='.px-marquee,.px-rail,.px-railwrap,.px-deck__rail,.px-bento,.px-xrail,.px-deckstage,.px-sort,.px-per__frame,.px-reel__p';
      const esc=[...document.querySelectorAll('body *')].filter(e=>{const r=e.getBoundingClientRect();
        if(!(r.width>0&&(r.left< -2||r.right>de.clientWidth+2))) return false;
        return !e.closest(OK);}).length;

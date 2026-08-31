@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import './premium.css';
-import { useReveal, Head, Crop, Ico, SiteNav, Foot } from './Premium';
+import { useReveal, Head, Crop, Ico, SiteNav, Foot, PageCta } from './Premium';
 import sCheckin from './assets/screens/ios/ios_checkin.jpg';
 import sSymptoms from './assets/screens/ios/ios_symptoms.jpg';
 import sReports from './assets/screens/ios/ios_reports.jpg';
@@ -13,16 +13,6 @@ import sModels from './assets/screens/ios/ios_model_picker.jpg';
 
 /* Every row carries the app's own icon. Rows are [icon, title, body]. */
 const PAGES={
- 'health-analysis':{k:'Health analysis',t:<>Six checks. <i>One</i> score.</>,
-  l:'Richie analyses six areas of your record separately, then reconciles them into one picture you can watch move over time.',img:sCheckin,
-  rows:[['sick','Symptoms','Frequency, severity and clustering across weeks, not a single bad day.'],
-   ['pill','Medications','Adherence, timing and what your list implies together, with pharmacist-level caution.'],
-   ['ruler','Measurements','Vitals and wearable readings trended against your own baseline, not a population average.'],
-   ['doc','Reports','Every extracted biomarker compared with your previous results.'],
-   ['analysis','Trends per parameter','Pick one lab value and see it across every report you have uploaded, against its reference range.'],
-   ['famgrp','Hereditary risk','Family history weighted for South-Asian predisposition.'],
-   ['analysis','Diagnostics','What is worth checking next, and what genuinely is not.'],
-   ['health','Overall','The six weighed together, argued into one position, never averaged.']]},
  'cycle':{k:'Cycle intelligence',t:<>A cycle tracker that <i>reads your bloods.</i></>,
   l:'Most cycle apps know your dates and nothing else. Yours sits in the same record as your thyroid panel, ferritin and medicines.',img:sSymptoms,
   rows:[['gyn','Logged in seconds','Start, end, flow and pain. That is the whole interaction.'],
@@ -113,7 +103,6 @@ const PAGES={
    the pixels. Read off the captures with a 10% grid overlay. */
 const FOCUS={
  'richie':          {f:[.03,.385,.94,.272], c:'Richie proposes the question, and says which of your readings made it ask.'},
- 'health-analysis': {f:[.02,.128,.96,.158], c:'One picture from six separate reads, and what is going well beside what is not.'},
  'checkins':        {f:[.02,.285,.96,.255], c:'What Richie is watching this week, with its own three states.'},
  'cycle':           {f:[.02,.217,.96,.255], c:'Every symptom dated and graded, beside the rest of the record.'},
  'doctors':         {f:[.02,.202,.96,.098], c:'A report photographed, read and dated — nothing retyped.'},
@@ -137,11 +126,13 @@ export default function Deep({slug}){
      in the one nav, and it is marked there while you are on it. */
   <div className="px">
     <SiteNav slug={slug} alwaysStuck/>
-    <section className="px-band" style={{paddingTop:'calc(var(--px-nav) + 70px)'}}>
+    <section className="px-band px-band--first">
       <div className="px-wrap">
         {!d?(<>
           <Head k="Not found" t={<>That page <i>doesn't exist.</i></>} l="It may have moved."/>
-          <a className="px-btn px-btn--fill" href="#/">Back to the product</a>
+          {/* "Back to the product" was a sixth way of saying "go back". Every
+              not-found state on the site now says the same thing. */}
+          <a className="px-btn px-btn--fill fx-glow" href="#/">Back to home</a>
         </>):(<>
           {/* Hero, then cards. The rows used to be a bulleted list crammed into
               half the width beside the phone — a feature page that reads like a
@@ -167,14 +158,21 @@ export default function Deep({slug}){
           {/* No "Back to the product". The nav never left. What is useful at the
               foot of a feature page is the next one, so this is a sibling link,
               not an exit. */}
+          {/* fx-glow was on every .px-btn in Premium.js and on none of the
+              identical buttons here — half the site's buttons carried the
+              cursor-follow highlight and half did not. */}
           {(()=>{ const ks=Object.keys(PAGES); const i=ks.indexOf(slug);
             const nx=ks[(i+1)%ks.length];
             return(<div className="px-deep__next">
-              <a className="px-btn px-btn--line" href={`#/deep/${nx}`}>Next: {PAGES[nx].k}</a>
+              <a className="px-btn px-btn--line fx-glow px-arw" href={`#/deep/${nx}`}>Next: {PAGES[nx].k}</a>
             </div>);})()}
         </>)}
       </div>
     </section>
+    {/* Eleven feature pages ended with no primary action at all: the only route
+        from any of them to the ask was the nav or the footer. Same component,
+        same words and same target as Medical quality, Security and About. */}
+    {d&&<PageCta/>}
     <Foot/>
   </div>);
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import './premium.css';
-import { useReveal, Head, Band, Ico, SiteNav, Foot } from './Premium';
+import { useReveal, Head, Band, Ico, SiteNav, Foot, PageCta } from './Premium';
 /* PLACEHOLDERS. Swap these two files for the real portraits — same names, same
    3:4 crop, and nothing else in this file has to change. */
 import portraitA from './assets/team/portrait_a.jpg';
@@ -80,8 +80,8 @@ const WITHOUT = [
 function Quality(){
   return(
   <>
-  <Band id="q-top">
-    <div className="px-wrap" style={{paddingTop:'calc(var(--px-nav) + 40px)'}}>
+  <Band first id="q-top">
+    <div className="px-wrap">
       <Head k="Medical quality" t={<>Every rule it follows <i>is written down.</i></>}
         l="Most health assistants describe their care as a value. Ours is a specification: eight blocks of reasoning rules composed into every conversation Richie has, whether it is about you, a parent or a child. This page is what those blocks say."/>
       <div className="px-fcards px-rv fx-stagger">
@@ -178,8 +178,8 @@ const SWITCHES = [
 function Security(){
   return(
   <>
-  <Band id="s-top">
-    <div className="px-wrap" style={{paddingTop:'calc(var(--px-nav) + 40px)'}}>
+  <Band first id="s-top">
+    <div className="px-wrap">
       <Head k="Security and data" t={<>What we hold, <i>and what is switched on.</i></>}
         l="Written from the user model and the query layer, not from a policy template. Where the honest answer is not the flattering one, the honest answer is here."/>
       <div className="px-fcards px-rv fx-stagger">
@@ -339,7 +339,7 @@ function About(){
   {/* ONE LINE, THEN QUIET. A whole screen holding one sentence. This is the
       reason the product exists and it is nine words long, so nothing else is
       allowed in the viewport with it. */}
-  <Band id="a-line">
+  <Band id="a-line" first>
     <div className="px-wrap px-oneline">
       <h1 className="px-oneline__t">
         I had all of my father’s reports.<br/><i>And nobody to ask.</i>
@@ -432,6 +432,10 @@ export default function Page({slug}){
   <div className="px">
     <SiteNav slug={slug} alwaysStuck/>
     <Body/>
+    {/* Medical quality, Security and About all ended on their last argument with
+        nothing to do about it. One shared closing ask, in one place, for all
+        three — a link to the real field rather than a third copy of it. */}
+    <PageCta/>
     <Foot/>
   </div>);
 }

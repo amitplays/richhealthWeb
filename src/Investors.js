@@ -38,14 +38,14 @@ export default function Investors(){
   <div className="px">
     <SiteNav slug="investors" alwaysStuck/>
 
-    <header className="px-hero" style={{paddingBottom:'clamp(40px,6vw,80px)'}}>
+    <header className="px-hero px-hero--closed">
       <div className="px-wrap">
         <Mast k="Investors"/>
-        <h1 className="px-hero__h1" style={{maxWidth:'16ch'}}>The health record <i>most of the world</i> doesn't have yet.</h1>
-        <p className="px-hero__sub" style={{maxWidth:'62ch'}}>A billion people are getting older, sicker and more connected at the same time, in a country where a consultation lasts ten minutes and nothing is written down. RichHealth is the record that gets written, for a household rather than a person.</p>
+        <h1 className="px-hero__h1">The health record <i>most of the world</i> doesn't have yet.</h1>
+        <p className="px-hero__sub">A billion people are getting older, sicker and more connected at the same time, in a country where a consultation lasts ten minutes and nothing is written down. RichHealth is the record that gets written, for a household rather than a person.</p>
         <div className="px-hero__btns">
-          <a href="mailto:hello@richhealth.app?subject=Investor%20enquiry" className="px-btn px-btn--fill">Request the deck</a>
-          <a href="#/" className="px-btn px-btn--line">See the product</a>
+          <a href="mailto:hello@richhealth.app?subject=Investor%20enquiry" className="px-btn px-btn--fill fx-glow px-arw">Request the deck</a>
+          <a href="#/" className="px-btn px-btn--line fx-glow px-arw">See the product</a>
         </div>
       </div>
     </header>
@@ -53,13 +53,13 @@ export default function Investors(){
     <section className="px-band px-band--alt"><div className="px-wrap">
       <Mast k="Why now"/><div className="px-head px-rv"><h2 className="px-h2">The market is arriving <i>at the same time</i> as the need.</h2></div>
       <div className="px-rv">{STATS.map(([n,d,s],i)=>(
-        <div className="px-src" key={i}><div className="px-src__n" style={{fontSize:22,color:'var(--px-teal)'}}>{n}</div>
+        <div className="px-src" key={i}><div className="px-src__n px-src__n--fig">{n}</div>
         <div className="px-src__d">{d}</div><div className="px-src__t">{s}</div></div>))}
       </div>
     </div></section>
 
     <section className="px-band"><div className="px-wrap">
-      <Mast k="The gap"/><div className="px-head px-rv" style={{maxWidth:'62ch'}}>
+      <Mast k="The gap"/><div className="px-head px-head--wide px-rv">
         <h2 className="px-h2">Everyone solves <i>one axis.</i> Health is four.</h2>
         <p className="px-lede">Family, intelligence, continuity and India. Every serious player owns one or two. Nobody spans all four, which is the whole opportunity.</p></div>
       <div className="px-rv">{WEDGE.map(([c,who,gap],i)=>(
@@ -69,7 +69,7 @@ export default function Investors(){
     </div></section>
 
     <section className="px-band px-band--alt"><div className="px-wrap">
-      <Mast k="What exists today"/><div className="px-head px-rv" style={{maxWidth:'62ch'}}>
+      <Mast k="What exists today"/><div className="px-head px-head--wide px-rv">
         <h2 className="px-h2">This is <i>built</i>, not a deck.</h2>
         <p className="px-lede">Three shipped native apps on one backend, in production with paying tiers.</p></div>
       <div className="px-rows px-rv">{BUILT.map(([t,b],i)=>(
@@ -80,18 +80,17 @@ export default function Investors(){
 
     <section className="px-band"><div className="px-wrap">
       <Mast k="Roadmap"/><div className="px-head px-rv"><h2 className="px-h2">Where it goes <i>next.</i></h2></div>
-      <div className="px-grid px-rv" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(230px,1fr))',gap:24}}>
+      <div className="px-grid px-rv">
         {ROADMAP.map(([phase,items],i)=>(
           <div key={i}>
-            <div style={{fontFamily:'var(--px-mono)',fontSize:11,letterSpacing:'.16em',textTransform:'uppercase',
-              color:i<2?'var(--px-teal)':'var(--px-lo)',paddingBottom:12,borderBottom:'1px solid var(--px-line)',marginBottom:14}}>{phase}</div>
-            {items.map((x,j)=>(<div key={j} style={{fontSize:13.5,lineHeight:1.5,color:'var(--px-mid)',padding:'8px 0'}}>{x}</div>))}
+            <div className={`px-grid__k ${i<2?'':'px-grid__k--later'}`}>{phase}</div>
+            {items.map((x,j)=>(<div className="px-grid__i" key={j}>{x}</div>))}
           </div>))}
       </div>
     </div></section>
 
     <section className="px-band px-band--alt"><div className="px-wrap">
-      <Mast k="How we talk about it"/><div className="px-head px-rv" style={{maxWidth:'62ch'}}>
+      <Mast k="How we talk about it"/><div className="px-head px-head--wide px-rv">
         <h2 className="px-h2">We’d rather be <i>trusted</i> than impressive.</h2>
         <p className="px-lede">Health claims are easy to inflate and expensive to retract. Some things we deliberately do not say:</p></div>
       <div className="px-rows px-rv">
@@ -104,11 +103,18 @@ export default function Investors(){
     <section className="px-band"><div className="px-wrap px-closer">
       <div className="px-rv">
         <Mast k="Talk to us"/>
-        <h2 className="px-h2" style={{maxWidth:'20ch',marginInline:'auto'}}>We’re raising to <i>go deeper,</i> not wider.</h2>
-        <p className="px-lede" style={{marginInline:'auto',textAlign:'center'}}>Predictive risk, regional languages and clinical interoperability, on a product that already ships.</p>
-        <div style={{display:'flex',gap:12,justifyContent:'center',marginTop:30,flexWrap:'wrap'}}>
-          <a href="mailto:hello@richhealth.app?subject=Investor%20enquiry" className="px-btn px-btn--fill">hello@richhealth.app</a>
-          <a href="#/" className="px-btn px-btn--line">See the product</a>
+        <h2 className="px-h2">We’re raising to <i>go deeper,</i> not wider.</h2>
+        <p className="px-lede">Predictive risk, regional languages and clinical interoperability, on a product that already ships. Write to hello@richhealth.app.</p>
+        {/* ONE action. This band repeated the hero's pair verbatim — the same
+            mailto as the same filled button, and the same "See the product" link
+            to the same route, twice on one page. The hero routes; the close
+            asks. The address is written out in the lede above so it can still be
+            copied without opening a mail client. */}
+        {/* .px-closer is already text-align:center and .px-btn is inline-flex,
+            so the row needs no flex of its own — .px-closer__cta is the same
+            spacing the home page's closer uses under the same heading. */}
+        <div className="px-closer__cta">
+          <a href="mailto:hello@richhealth.app?subject=Investor%20enquiry" className="px-btn px-btn--fill fx-glow px-arw">Request the deck</a>
         </div>
       </div>
     </div></section>

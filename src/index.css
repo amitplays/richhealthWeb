@@ -15,10 +15,20 @@ html {
 }
 
 body {
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #121212;
-  color: #FFFFFF;
-  overflow-x: hidden;
+  /* ONE font stack, declared once. This line, --px-display, --font-display and
+     --font-body were four spellings of the same family; the other three now
+     point here or at --px-display, which is the source of truth (premium.css).*/
+  font-family: var(--px-display);
+  /* --px-void / --px-hi, not a fifth pair of literals: #121212 was a ground no
+     other file uses (premium.css paints .px on --px-void #000 and App.css's
+     page-shell sits on --px-deep), so it only ever showed through as a flash
+     before the app mounted, in a colour the app does not have. */
+  background: var(--px-void);
+  color: var(--px-hi);
+  /* `clip`, not `hidden`. overflow-x:hidden on body makes body a scroll
+     container, which silently kills every `position:sticky` descendant.
+     `clip` does the same visual job without that side effect. */
+  overflow-x: clip;
   line-height: 1.6;
 }
 
