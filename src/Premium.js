@@ -602,7 +602,14 @@ function Hero(){return(
         {/* This read "Free on iPhone, Apple Watch and Android" — present tense,
             under a hero shot, on a site for an app that is not on either store
             yet. The platforms and the price are true; only the tense was not. */}
-        <p className="px-hero__trust">Launching {LAUNCH_LONG} on iPhone, Apple Watch and Android. Free to start, and your data is never sold or shared.</p>
+        {/* Was: "Launching 1 October 2026 on iPhone, Apple Watch and Android.
+            Free to start, and your data is never sold or shared." Four claims,
+            three of them already on screen — the launch pill carries the date
+            and "Free to start", and the platform toggle under the phone carries
+            iPhone and Android. It also said "or shared", which is not true: the
+            product has family sharing and doctor sharing, both opt-in. What is
+            left is the one promise nothing else on this screen makes. */}
+        <p className="px-hero__trust">Free to start. Your data is never sold.</p>
       </div>
       <div className="px-stage px-rv in">
         {/* The three floating readings. .px-chip and its --1/--2/--3 positions,
