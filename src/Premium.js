@@ -20,6 +20,7 @@ import sAqi from './assets/screens/home_amit.jpg';
 import sHub from './assets/screens/health_hub_clean.jpg';
 import sPeriod from './assets/screens/health_hub_period.jpg';
 import sClinic from './assets/photo/clinician_plate.jpg';
+import sAppleHealth from './assets/screens/ios_apple_health.jpg';
 
 /* Verified free stock (Unsplash/Pexels). Two candidates each, then gradient fallback. */
 export const STOCK={
@@ -1689,7 +1690,9 @@ const PROOF={
  q:'Does my calcium supplement affect my kidney stones? Elemental calcium 333mg with magnesium and vitamin D3, one pill, nightly for eighteen days.',
  tools:['Searched research: calcium supplement kidney stones',
         'Searched the web: calcium supplements kidney stone risk',
-        'Checked your medications log'],
+        /* The real trace reads "Checked drug information: calcium supplement
+           kidney stones" — a drug lookup, not a read of your own medicines list. */
+        'Checked drug information: calcium supplement kidney stones'],
  /* Eight were read; three are shown, so the whole section still lands inside
     one screen like every other band. The count in the header stays the true
     one and the remainder is stated rather than quietly dropped. */
@@ -1697,8 +1700,8 @@ const PROOF={
  sources:['Calcium Supplementation and Incident Kidney Stone Risk: A Systematic Review (2008)',
   'Dietary Factors and the Risk of Incident Kidney Stones in Younger Women (2004)',
   'How To Prevent Kidney Stones — Yale Medicine'],
- a:['Possible — but modest, and I would lean toward keeping it while you heal.',
-    'The evidence is genuinely split. Dietary calcium protects against stones: it binds oxalate in the gut, so less of it ever reaches your kidneys.',
+ a:['Possible — but modest, and I’d lean toward keeping it while you heal.',
+    'The evidence is genuinely split. Dietary calcium protects against stones — it binds oxalate in the gut so less reaches your urine.',
     'And your metatarsal fracture needs calcium to heal now. Stone risk from a supplement is the long game — the fracture is this month.']};
 
 export function Proof(){
@@ -2779,9 +2782,12 @@ const CARDS=[
   how:['Add a reading','It joins the trend','Read beside your bloods']},
 
  {t:'Apple Health & Health Connect', sub:'Ten readings, each with its source', tag:'Automatic',
-  img:sWatchScr,
+  /* The real Apple Health sheet. Numbers read off it rather than invented:
+     resting heart rate 65, and the Trends card's own "Avg 71.8 · 54–120" with
+     its "8% higher" pill. */
+  img:sAppleHealth,
   moment:{q:'Is my resting heart rate telling me anything?',
-          a:'It has gone from 51 in spring to 56 now — alongside your sleep dropping under six hours and the tablet you started in June.'},
+          a:'It is 65 today, against an average of 71.8 over a 54–120 range — 8% higher than the stretch before. Read next to your sleep and what you started in June.'},
   how:['Connect it once','Readings arrive on their own','Kept with their source']},
 
  {t:'Air quality', sub:'Today’s air, in your advice', tag:'Local',
