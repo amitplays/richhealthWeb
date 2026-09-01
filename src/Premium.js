@@ -5,6 +5,7 @@ import logo from './assets/ic_launcher.png';
 import sRichie from './assets/screens/ios/ios_richie_home.jpg';
 import sAndroid from './assets/screens/android_richie_home.jpg';
 import sFamilyChat from './assets/screens/ios/ios_family_chat.jpg';
+import sDepPicker from './assets/screens/richie_dependent_picker.jpg';
 import sModel from './assets/screens/ios/ios_model_picker.jpg';
 import sWatchScr from './assets/screens/ios/ios_measurements_watch.jpg';
 import sCheckin from './assets/screens/ios/ios_checkin.jpg';
@@ -1823,6 +1824,19 @@ const FAQ=[
   'Yes, and it stays free. Five messages a session, two report uploads, one health analysis a month and a monthly check-in, for you. Paying buys volume and line-by-line report reading — not a different app.'],
  ['Is my chat used to train models?',
   'The contents of your reports and conversations are not training data. Aggregate, de-identified usage data is on when you sign up, and one tap in Profile turns it off.'],
+ /* BiometricManager.swift, wired through SplashView, RootView and
+    AppEnvironment. Face ID on a health record is a trust proof and the site had
+    never once mentioned it. */
+ ['Can I lock the app?',
+  'Yes. Face ID or your device passcode locks RichHealth itself, on top of your phone’s own lock. Someone holding an unlocked phone still cannot open your record.'],
+ /* doctorPortalRoutes.js — /patients, /search-patients, /patient-request,
+    /patients/:id/medical-data, /patients/:id/medications, and an alerts feed
+    with read and resolve. */
+ ['What does my doctor actually see?',
+  'Only what you connected them to. On their side there is a patient list, the history and medicines you shared, and alerts they can mark resolved. Nothing reaches a doctor you have not accepted.'],
+ /* feedRoutes.js, plus a podcast player on Android (PodcastAdapter.java). */
+ ['Is there anything to read?',
+  'A feed of health articles picked against your record rather than a general news list, and on Android a podcast player alongside it.'],
  ['Can I delete my account?',
   'Yes, from Profile, whenever you want. Your sign-in details are removed and the account cannot be used again.'],
 ];
@@ -1861,10 +1875,13 @@ export function Faq(){
           BOTH down. Splitting the array means the halves move independently.
           DOM order is still 01…14, so reading order and tab order match. */}
       <div className={`px-fq ${seen?'is-in':''}`} ref={ref}>
-        {[FAQ.slice(0,7),FAQ.slice(7)].map((col,c)=>(
+        {(()=>{const H=Math.ceil(FAQ.length/2); return [FAQ.slice(0,H),FAQ.slice(H)];})().map((col,c)=>(
         <div className="px-fq__col" key={c}>
         {col.map(([q,a],j)=>{
-          const i=c*7+j;
+          /* Half, computed — not the 7 this was hard-coded to when there were
+             fourteen. The index has to use the same number or the open row and
+             the clicked row stop being the same row past the halfway point. */
+          const i=c*Math.ceil(FAQ.length/2)+j;
           const on=open===i;
           return(
           <div className={`px-fq__row ${on?'is-open':''}`} key={q} style={{'--i':i}}>
@@ -2594,13 +2611,18 @@ const BENTO=[
  /* WorkoutService.swift — /api/fitness/workouts, and WorkoutsCardView renders
     each one with its exercise count and date. Rendered unconditionally in the
     Services tab, unlike Dietary Insights, which is commented out there. */
- {id:'workouts', k:'sub', t:'Workouts', d:'Log a session with its exercises. It is dated into the same record as your labs and your medicines, not a separate fitness app.',
+ /* /api/fitness/workouts AND /api/fitness/exercises — the second is a
+    catalogue you pick from, which the old copy did not mention. */
+ {id:'workouts', k:'sub', t:'Workouts', d:'Build a session from the exercise library and log it. It is dated into the same record as your labs and your medicines, not a separate fitness app.',
   from:'What you actually did', to:'In the record that gets read'},
 
  /* DoctorService.swift — search, request, accept or decline, then a dated
     summary goes to the doctors you are connected to. */
- {id:'doctors', k:'sub', t:'My doctor', d:'Connect to your doctor, accept or decline requests, and share a dated summary of your history with the ones you keep.', href:'#/deep/doctors',
-  from:'Eleven scattered PDFs', to:'One dated summary'},
+ /* doctorPortalRoutes.js — the doctor gets their own side: a patient list,
+    your medical data and medications, and an alerts feed they can resolve. The
+    site only ever described the patient half of this. */
+ {id:'doctors', k:'sub', t:'My doctor', d:'Connect to your doctor and they get their own view of what you shared — your history, your medicines, and alerts they can act on.', href:'#/deep/doctors',
+  from:'Eleven scattered PDFs', to:'A doctor who can see it'},
 ];
 
 /* Every card carries one real before -> after, and resolves it when THAT CARD is
@@ -2979,7 +3001,10 @@ const FOR = [
      geriatric framing. buildHealthContext(user, dependentId) swaps the whole
      subject record (ai.js:284-303). */
   d:'Keep their record too. Switch to it, and ask in their chat, not yours.',
-  ic:'famgrp', img:sFamilyChat, href:'#/deep/family', cta:'How family records work'},
+  /* The dependent picker, not a chat window: this persona's whole claim is
+     "switch to it, and ask in their chat", and the picker is the screen where
+     that switch happens. */
+  ic:'famgrp', img:sDepPicker, href:'#/deep/family', cta:'How family records work'},
  {k:'Half the people we know',
   t:'Your cycle is logged, and nobody ever reads it',
   b:'Period apps know your dates and nothing else. Your thyroid test sits in another app, your iron result sits in a PDF, and the doctor who could join the three up has eight minutes.',
